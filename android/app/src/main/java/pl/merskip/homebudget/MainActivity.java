@@ -1,4 +1,4 @@
-package com.example.home_budget;
+package pl.merskip.homebudget;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;

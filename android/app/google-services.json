@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "528409011244",
+    "firebase_url": "https://home-budget-7eecd.firebaseio.com",
+    "project_id": "home-budget-7eecd",
+    "storage_bucket": "home-budget-7eecd.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:528409011244:android:76a4920770610c39",
+        "android_client_info": {
+          "package_name": "pl.merskip.homebudget"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "528409011244-d0aonh8m958ih610e9h2cdp18al9htbi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "pl.merskip.homebudget",
+            "certificate_hash": "83359232b1b17337c5a4d26c3167c0b39c1e6e1b"
+          }
+        },
+        {
+          "client_id": "528409011244-lftip9lqmcjna49t0evib13gk67mafbc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCkrWcKtg07egjvM_-HQ7htwT3mlWVBK_c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "528409011244-lftip9lqmcjna49t0evib13gk67mafbc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
