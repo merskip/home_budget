@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-
+import 'package:intl/intl.dart';
+import 'package:googleapis/sheets/v4.dart' as sheets;
 import 'BudgetProperties.dart';
+import 'Product.dart';
+import 'main.dart';
 
 class AddProductForm extends StatefulWidget {
 
@@ -16,9 +19,38 @@ class _AddProductFormState extends State<AddProductForm> {
 
   final _formKey = GlobalKey<FormState>();
 
-  dynamic _selectedCategory;
-  dynamic _selectedOwner;
-  dynamic _selectedType;
+  String _enteredProductName;
+  String _enteredAmount;
+  String _selectedCategory;
+  String _selectedOwner;
+  String _selectedType;
+
+  _onSubmit() {
+    if (_formKey.currentState.validate()) {
+      _formKey.currentState.save();
+      final newProduct = _getProductFromForm();
+      _addProductToSheet(newProduct);
+    }
+  }
+
+  Product _getProductFromForm() {
+    final todayDate = DateFormat("dd.MM.yyyy").format(DateTime.now());
+    return Product(_enteredProductName, double.parse(_enteredAmount), todayDate, _selectedCategory, _selectedOwner, _selectedType);
+  }
+
+  _addProductToSheet(Product product) async {
+    final sheetTitle = widget.budgetProperties.sheet.properties.title;
+    final rowIndex = widget.budgetProperties.nextFreeRowIndex;
+    final range = "'$sheetTitle'!B$rowIndex:G$rowIndex";
+    final valueRange = sheets.ValueRange()
+      ..range = range
+      ..values = [[product.productName, product.amount, product.date, product.category, product.owner, product.type]]
+      ..majorDimension = "ROWS";
+
+    await sheets.SheetsApi(httpClient).spreadsheets.values
+      .update(valueRange, widget.budgetProperties.spreadsheet.spreadsheetId, range, valueInputOption: "USER_ENTERED");
+    Navigator.of(context).pop();
+  }
 
   @override
   Widget build(BuildContext context) =>
@@ -38,6 +70,9 @@ class _AddProductFormState extends State<AddProductForm> {
               ),
               validator: (value) {
                 if (value.isEmpty) return 'Please enter some product name';
+              },
+              onSaved: (value) {
+                _enteredProductName = value;
               }
             ),
             TextFormField(
@@ -48,6 +83,9 @@ class _AddProductFormState extends State<AddProductForm> {
               keyboardType: TextInputType.numberWithOptions(decimal: true, signed: false),
               validator: (value) {
                 if (value.isEmpty) return 'Please enter some amount';
+              },
+              onSaved: (value) {
+                _enteredAmount = value;
               }
             ),
             Row(
@@ -89,11 +127,7 @@ class _AddProductFormState extends State<AddProductForm> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: RaisedButton(
-                onPressed: () {
-                  if (_formKey.currentState.validate()) {
-                    Scaffold.of(context).showSnackBar(SnackBar(content: Text('Processing Data')));
-                  }
-                },
+                onPressed: _onSubmit,
                 child: Text('Add product'),
               ),
             ),

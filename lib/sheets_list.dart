@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:googleapis/drive/v3.dart';
-
-import 'google_http_client.dart';
 import 'main.dart';
-import 'budget_preview.dart';
 
 class SheetsListPage extends StatefulWidget {
   SheetsListPage({Key key}) : super(key: key);
@@ -14,7 +11,6 @@ class SheetsListPage extends StatefulWidget {
 
 class _SheetsListState extends State<SheetsListPage> {
   FileList files = FileList();
-  Map<String, String> authHeaders;
 
   @override
   void initState() {
@@ -28,9 +24,6 @@ class _SheetsListState extends State<SheetsListPage> {
   }
 
   Future<FileList> _fetchFiles() async {
-    authHeaders = await googleSignIn.currentUser.authHeaders;
-    final httpClient = GoogleHttpClient(authHeaders);
-
     return await DriveApi(httpClient).files.list(
       corpora: 'user',
       $fields: 'files(id,name,hasThumbnail,thumbnailLink)',
@@ -71,7 +64,7 @@ class _SheetsListState extends State<SheetsListPage> {
         children: <Widget>[
           file.hasThumbnail
             ? Image.network(
-            file.thumbnailLink, headers: authHeaders, fit: BoxFit.fill)
+            file.thumbnailLink, headers: httpHeaders, fit: BoxFit.fill)
             : Text("No image"),
 
           Container(

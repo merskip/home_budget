@@ -20,8 +20,6 @@ class BudgetPreviewPage extends StatefulWidget {
 
 class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
 
-  Map<String, String> authHeaders;
-
   Sheet sheet;
   BudgetProperties budgetProperties;
   List<Product> products;
@@ -34,17 +32,16 @@ class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
   }
 
   _fetchSheet() async {
-    authHeaders = await googleSignIn.currentUser.authHeaders;
-    final httpClient = GoogleHttpClient(authHeaders);
 
     final spreadsheet = await SheetsApi(httpClient).spreadsheets.get(widget.budgetFile.id, includeGridData: true);
     final firstSheet = spreadsheet.sheets[0];
     final products = _getProductsFromSheet(firstSheet);
 
-    final budgetProperties = await BudgetProperties.fromSheet(firstSheet, (range) async {
-      final values = await SheetsApi(httpClient).spreadsheets.values.get(widget.budgetFile.id, range, majorDimension: "COLUMNS");
-      return values.values.first.map((object) => object.toString()).toList();
-    });
+    final firstProductRow = firstSheet.data.first.rowData[2];
+    final categories = await _getDataValidationValues(_getValueAtRange, firstProductRow.values[4]);
+    final owners = await _getDataValidationValues(_getValueAtRange, firstProductRow.values[5]);
+    final types = await _getDataValidationValues(_getValueAtRange, firstProductRow.values[6]);
+    final budgetProperties = BudgetProperties(spreadsheet, firstSheet, categories, owners, types, products.length + 3);
 
     print(products);
     setState(() {
@@ -60,6 +57,27 @@ class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
       .where((gridData) => gridData.values[1].formattedValue != null)
       .map((rowData) => Product.fromRowData(rowData))
       .toList();
+  }
+
+  Future<List<String>> _getValueAtRange(String range) async {
+    final values = await SheetsApi(httpClient).spreadsheets.values.get(widget.budgetFile.id, range, majorDimension: "COLUMNS");
+    return values.values.first.map((object) => object.toString()).toList();
+  }
+
+  static Future<List<String>> _getDataValidationValues(GetValuesAtRange getValueAtRange, CellData cell) async {
+    final condition = cell.dataValidation?.condition;
+    if (condition == null) return [];
+
+    switch (condition.type) {
+      case "ONE_OF_LIST":
+        return condition.values.map((conditionValue) => conditionValue.userEnteredValue).toList();
+      case "ONE_OF_RANGE":
+        final range = condition.values.first.userEnteredValue.substring(1);
+        return await getValueAtRange(range);
+
+      default:
+        return [];
+    }
   }
 
   @override
