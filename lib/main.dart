@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis/drive/v3.dart';
+import 'package:googleapis/sheets/v4.dart';
 import 'sign_in_page.dart';
 import 'sheets_list.dart';
 
-GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email']);
+GoogleSignIn googleSignIn = GoogleSignIn(scopes: [
+  'email',
+  DriveApi.DriveReadonlyScope,
+  SheetsApi.SpreadsheetsScope
+]);
 
 void main() => runApp(MyApp());
 
