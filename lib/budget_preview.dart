@@ -21,6 +21,7 @@ class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
 
   Map<String, String> authHeaders;
 
+  Sheet sheet;
   List<Product> products;
 
   @override
@@ -39,6 +40,7 @@ class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
     final products = _getProductsFromSheet(firstSheet);
     print(products);
     setState(() {
+      this.sheet = firstSheet;
       this.products = products;
     });
   }
@@ -55,7 +57,7 @@ class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Budget preview: ${widget.budgetFile.name}"),
+        title: Text(sheet != null ? "Sheet ${sheet.properties.title}" : "Loading ${widget.budgetFile.name}...")
       ),
       body: ListView.separated(
         separatorBuilder: (context, index) => Divider(color: Colors.grey),
@@ -67,10 +69,11 @@ class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: sheet != null ? FloatingActionButton.extended(
         icon: Icon(Icons.add),
         label: Text("Add"),
-        onPressed: () => print("Add product")),
+        onPressed: () => Navigator.of(context).pushNamed("/add_product")
+      ) : null
     );
   }
 }

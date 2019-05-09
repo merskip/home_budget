@@ -3,6 +3,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'package:googleapis/sheets/v4.dart';
 
+import 'add_product_form.dart';
 import 'sign_in_page.dart';
 import 'sheets_list.dart';
 import 'budget_preview.dart';
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
           final arguments = ModalRoute.of(context).settings.arguments as Map<String, dynamic>;
           return new BudgetPreviewPage(budgetFile: arguments["file"] as File);
         },
+        '/add_product': (BuildContext context) => new AddProductForm(),
       },
     );
   }
