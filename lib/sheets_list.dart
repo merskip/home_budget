@@ -3,6 +3,7 @@ import 'package:googleapis/drive/v3.dart';
 
 import 'google_http_client.dart';
 import 'main.dart';
+import 'budget_preview.dart';
 
 class SheetsListPage extends StatefulWidget {
   SheetsListPage({Key key}) : super(key: key);
@@ -36,6 +37,14 @@ class _SheetsListState extends State<SheetsListPage> {
       q: "mimeType = 'application/vnd.google-apps.spreadsheet'");
   }
 
+  _onSelectedFile(File file) {
+    Navigator.pushNamed(
+      context,
+      "/budget_preview",
+      arguments: {"file": file}
+    );
+  }
+
   @override
   Widget build(BuildContext context) =>
     Scaffold(
@@ -54,20 +63,25 @@ class _SheetsListState extends State<SheetsListPage> {
     );
 
   _buildFileItem(File file) =>
-    Stack(
-      children: <Widget>[
-        file.hasThumbnail
-          ? Image.network(
-          file.thumbnailLink, headers: authHeaders, fit: BoxFit.fill)
-          : Text("No image"),
+    InkWell(
+      onTap: () {
+        _onSelectedFile(file);
+      },
+      child: Stack(
+        children: <Widget>[
+          file.hasThumbnail
+            ? Image.network(
+            file.thumbnailLink, headers: authHeaders, fit: BoxFit.fill)
+            : Text("No image"),
 
-        Container(
-          alignment: Alignment.bottomLeft,
-          child: GridTileBar(
-            backgroundColor: Colors.black54,
-            title: Text(file.name),
+          Container(
+            alignment: Alignment.bottomLeft,
+            child: GridTileBar(
+              backgroundColor: Colors.black54,
+              title: Text(file.name),
+            )
           )
-        )
-      ]
+        ]
+      )
     );
 }
