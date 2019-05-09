@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'package:googleapis/sheets/v4.dart';
 
+import 'BudgetProperties.dart';
 import 'Product.dart';
 import 'google_http_client.dart';
 import 'main.dart';
@@ -22,6 +23,7 @@ class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
   Map<String, String> authHeaders;
 
   Sheet sheet;
+  BudgetProperties budgetProperties;
   List<Product> products;
 
   @override
@@ -38,9 +40,18 @@ class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
     final spreadsheet = await SheetsApi(httpClient).spreadsheets.get(widget.budgetFile.id, includeGridData: true);
     final firstSheet = spreadsheet.sheets[0];
     final products = _getProductsFromSheet(firstSheet);
+
+    final budgetProperties = BudgetProperties.fromSheet(firstSheet, (range) async {
+      final values = await SheetsApi(httpClient).spreadsheets.values.get(widget.budgetFile.id, range, majorDimension: "COLUMNS");
+      return values.values.first.map((object) {
+        return object.toString();
+      }).toList();
+    });
+
     print(products);
     setState(() {
       this.sheet = firstSheet;
+
       this.products = products;
     });
   }
@@ -72,7 +83,7 @@ class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
       floatingActionButton: sheet != null ? FloatingActionButton.extended(
         icon: Icon(Icons.add),
         label: Text("Add"),
-        onPressed: () => Navigator.of(context).pushNamed("/add_product")
+        onPressed: () => Navigator.of(context).pushNamed("/add_product", arguments: {"budget_properties": budgetProperties})
       ) : null
     );
   }

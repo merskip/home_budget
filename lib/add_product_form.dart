@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'BudgetProperties.dart';
+
 class AddProductForm extends StatefulWidget {
+
+  final BudgetProperties budgetProperties;
+
+  AddProductForm(this.budgetProperties);
 
   @override
   _AddProductFormState createState() => _AddProductFormState();

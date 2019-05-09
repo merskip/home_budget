@@ -40,7 +40,10 @@ class MyApp extends StatelessWidget {
           final arguments = ModalRoute.of(context).settings.arguments as Map<String, dynamic>;
           return new BudgetPreviewPage(budgetFile: arguments["file"] as File);
         },
-        '/add_product': (BuildContext context) => new AddProductForm(),
+        '/add_product': (BuildContext context) {
+          final arguments = ModalRoute.of(context).settings.arguments as Map<String, dynamic>;
+          return new AddProductForm(arguments["budget_properties"]);
+        },
       },
     );
   }
