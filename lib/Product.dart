@@ -20,4 +20,11 @@ class Product {
     final type = rowData.values[6].formattedValue;
     return Product(productName, amount, date, category, owner, type);
   }
+
+  @override
+  String toString() {
+    return 'Product{$productName, amount: $amount}';
+  }
+
+
 }

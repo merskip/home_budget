@@ -57,7 +57,8 @@ class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
       appBar: AppBar(
         title: Text("Budget preview: ${widget.budgetFile.name}"),
       ),
-      body: ListView.builder(
+      body: ListView.separated(
+        separatorBuilder: (context, index) => Divider(color: Colors.grey),
         itemCount: products?.length ?? 0,
         itemBuilder: (context, index) {
           final product = products[index];
@@ -65,7 +66,11 @@ class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
             title: Text('${product.productName}, ${product.amount} zł, ${product.category}, ${product.owner}, ${product.type}'),
           );
         },
-      )
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        icon: Icon(Icons.add),
+        label: Text("Add"),
+        onPressed: () => print("Add product")),
     );
   }
 }
