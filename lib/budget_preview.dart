@@ -41,17 +41,15 @@ class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
     final firstSheet = spreadsheet.sheets[0];
     final products = _getProductsFromSheet(firstSheet);
 
-    final budgetProperties = BudgetProperties.fromSheet(firstSheet, (range) async {
+    final budgetProperties = await BudgetProperties.fromSheet(firstSheet, (range) async {
       final values = await SheetsApi(httpClient).spreadsheets.values.get(widget.budgetFile.id, range, majorDimension: "COLUMNS");
-      return values.values.first.map((object) {
-        return object.toString();
-      }).toList();
+      return values.values.first.map((object) => object.toString()).toList();
     });
 
     print(products);
     setState(() {
       this.sheet = firstSheet;
-
+      this.budgetProperties = budgetProperties;
       this.products = products;
     });
   }

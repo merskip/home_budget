@@ -55,7 +55,9 @@ class _AddProductFormState extends State<AddProductForm> {
                 Text("Category: "),
                 DropdownButton(
                   value: _selectedCategory,
-                  items: <DropdownMenuItem>[DropdownMenuItem(value: "1", child: Text("Eh"))],
+                  items: widget.budgetProperties.categories.map((category) {
+                    return DropdownMenuItem(value: category, child: Text(category));
+                  }).toList(),
                   onChanged: (value) => setState(() => _selectedCategory = value),
                 )
               ]
@@ -65,7 +67,9 @@ class _AddProductFormState extends State<AddProductForm> {
                 Text("Owner: "),
                 DropdownButton(
                   value: _selectedOwner,
-                  items: <DropdownMenuItem>[DropdownMenuItem(value: "1", child: Text("Eh"))],
+                  items: widget.budgetProperties.owners.map((owner) {
+                    return DropdownMenuItem(value: owner, child: Text(owner));
+                  }).toList(),
                   onChanged: (value) => setState(() => _selectedOwner = value),
                 )
               ]
@@ -75,7 +79,9 @@ class _AddProductFormState extends State<AddProductForm> {
                 Text("Type: "),
                 DropdownButton(
                   value: _selectedType,
-                  items: <DropdownMenuItem>[DropdownMenuItem(value: "1", child: Text("Eh"))],
+                  items: widget.budgetProperties.types.map((type) {
+                    return DropdownMenuItem(value: type, child: Text(type));
+                  }).toList(),
                   onChanged: (value) => setState(() => _selectedType = value),
                 )
               ]

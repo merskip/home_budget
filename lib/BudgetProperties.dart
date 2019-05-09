@@ -4,6 +4,7 @@ typedef Future<List<String>> GetValuesAtRange(String range);
 
 
 class BudgetProperties {
+
   final List<String> categories;
   final List<String> owners;
   final List<String> types;
