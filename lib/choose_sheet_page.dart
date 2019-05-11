@@ -61,12 +61,11 @@ class _ChooseSheetState extends State<ChooseSheetPage> {
         _onSelectedFile(file);
       },
       child: Stack(
+        fit: StackFit.expand,
         children: <Widget>[
           file.hasThumbnail
-            ? Image.network(
-            file.thumbnailLink, headers: httpHeaders, fit: BoxFit.fill)
+            ? Image.network(file.thumbnailLink, headers: httpHeaders, fit: BoxFit.fitWidth, alignment: AlignmentDirectional.topCenter)
             : Text("No image"),
-
           Container(
             alignment: Alignment.bottomLeft,
             child: GridTileBar(
