@@ -36,12 +36,10 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
   void initState() {
     super.initState();
 
-    googleSignIn.onCurrentUserChanged.listen((account) async {
-      httpHeaders = await googleSignIn.currentUser.authHeaders;
-      httpClient = GoogleHttpClient(httpHeaders);
-    });
+    googleSignIn.onCurrentUserChanged.listen((account) => _configureHttpClient());
 
     googleSignIn.signInSilently().then((account) async {
+      await _configureHttpClient();
       final preferences = await SharedPreferences.getInstance();
 
       setState(() {
@@ -50,6 +48,11 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
         this.loading = false;
       });
     });
+  }
+
+  _configureHttpClient() async {
+    httpHeaders = await googleSignIn.currentUser.authHeaders;
+    httpClient = GoogleHttpClient(httpHeaders);
   }
 
   @override
