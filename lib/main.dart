@@ -17,29 +17,50 @@ GoogleSignIn googleSignIn = GoogleSignIn(scopes: [
 Map<String, String> httpHeaders;
 GoogleHttpClient httpClient;
 
-void main() => runApp(MyApp());
+void main() => runApp(HomeBudgetAppWidget());
 
-class MyApp extends StatelessWidget {
+class HomeBudgetAppWidget extends StatefulWidget {
+
+  @override
+  State<StatefulWidget> createState() => HomeBudgetAppState();
+}
+
+class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
+
+  var loading = true;
+  GoogleSignInAccount account;
+
+  @override
+  void initState() {
+    super.initState();
+
+    googleSignIn.signInSilently().then((account) {
+      setState(() {
+        this.account = account;
+        this.loading = false;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Home Budget',
       theme: ThemeData(
-          primarySwatch: Colors.deepOrange,
-          buttonTheme: ButtonThemeData(
-              buttonColor: Colors.deepOrange,
+        primarySwatch: Colors.deepOrange,
+        buttonTheme: ButtonThemeData(
+          buttonColor: Colors.deepOrange,
               textTheme: ButtonTextTheme.primary)
       ),
       home: Builder(
-          builder: (context) => SignInPage(
-              onSignIn: () async {
-                httpHeaders = await googleSignIn.currentUser.authHeaders;
-                httpClient = GoogleHttpClient(httpHeaders);
-
-                return Navigator.pushReplacementNamed(context, '/sheets_list');
-              }
-          )
+        builder: (context) {
+          if (loading)
+            return _loadingScreen(context);
+          else if (account == null)
+            return _singInScreen(context);
+          else
+            return SheetsListPage();
+        }
       ),
       routes: <String, WidgetBuilder>{
         '/sheets_list': (BuildContext context) => new SheetsListPage(),
@@ -54,4 +75,21 @@ class MyApp extends StatelessWidget {
       },
     );
   }
+
+  Widget _loadingScreen(BuildContext context) =>
+    Scaffold(
+      body: Center(
+        child: new CircularProgressIndicator()
+      )
+    );
+
+  Widget _singInScreen(BuildContext context) =>
+    SignInPage(
+      onSignIn: () async {
+        httpHeaders = await googleSignIn.currentUser.authHeaders;
+        httpClient = GoogleHttpClient(httpHeaders);
+
+        return Navigator.pushReplacementNamed(context, '/sheets_list');
+      }
+    );
 }

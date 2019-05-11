@@ -22,7 +22,6 @@ class _SignInState extends State<SignInPage> {
         widget.onSignIn();
       }
     });
-    googleSignIn.signInSilently();
   }
 
   _handleSignIn() {
@@ -34,7 +33,8 @@ class _SignInState extends State<SignInPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) =>
+    Scaffold(
       appBar: AppBar(
         title: Text("Home Budget"),
       ),
