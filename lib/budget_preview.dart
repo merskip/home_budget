@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:googleapis/drive/v3.dart';
 import 'package:googleapis/sheets/v4.dart';
 
 import 'BudgetProperties.dart';
 import 'Product.dart';
-import 'google_http_client.dart';
 import 'main.dart';
-
 
 class BudgetPreviewPage extends StatefulWidget {
 
-  final File budgetFile;
+  final String sheetId;
 
-  BudgetPreviewPage({Key key, this.budgetFile}) : super(key: key);
+  BudgetPreviewPage({Key key, this.sheetId}) : super(key: key);
 
   @override
   _BudgetPreviewPageState createState() => _BudgetPreviewPageState();
@@ -32,8 +29,7 @@ class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
   }
 
   _fetchSheet() async {
-
-    final spreadsheet = await SheetsApi(httpClient).spreadsheets.get(widget.budgetFile.id, includeGridData: true);
+    final spreadsheet = await SheetsApi(httpClient).spreadsheets.get(widget.sheetId, includeGridData: true);
     final firstSheet = spreadsheet.sheets[0];
     final products = _getProductsFromSheet(firstSheet);
 
@@ -60,7 +56,7 @@ class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
   }
 
   Future<List<String>> _getValueAtRange(String range) async {
-    final values = await SheetsApi(httpClient).spreadsheets.values.get(widget.budgetFile.id, range, majorDimension: "COLUMNS");
+    final values = await SheetsApi(httpClient).spreadsheets.values.get(widget.sheetId, range, majorDimension: "COLUMNS");
     return values.values.first.map((object) => object.toString()).toList();
   }
 
@@ -84,7 +80,7 @@ class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(sheet != null ? "Sheet ${sheet.properties.title}" : "Loading ${widget.budgetFile.name}...")
+        title: Text(sheet != null ? sheet.properties.title : "Loading budget...")
       ),
       body: ListView.separated(
         separatorBuilder: (context, index) => Divider(color: Colors.grey),
