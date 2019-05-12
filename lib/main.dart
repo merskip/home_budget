@@ -36,11 +36,14 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
   void initState() {
     super.initState();
 
-    googleSignIn.onCurrentUserChanged.listen((account) => _configureHttpClient());
+    googleSignIn.onCurrentUserChanged.listen((account) {
+      return this.account = account;
+    });
 
     googleSignIn.signInSilently().then((account) async {
-      await _configureHttpClient();
       final preferences = await SharedPreferences.getInstance();
+      if (account != null)
+        await _configureAuthentication();
 
       setState(() {
         this.account = account;
@@ -50,7 +53,7 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
     });
   }
 
-  _configureHttpClient() async {
+  _configureAuthentication() async {
     httpHeaders = await googleSignIn.currentUser.authHeaders;
     httpClient = GoogleHttpClient(httpHeaders);
   }
@@ -92,9 +95,10 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
     Scaffold(body: Center(child: CircularProgressIndicator()));
 
   Widget _singInPage(BuildContext context) =>
-    SignInPage(onSignIn: () =>
-      Navigator.pushReplacementNamed(context, '/chooseSheet')
-    );
+    SignInPage(onSignIn: () async {
+      await _configureAuthentication();
+      Navigator.pushReplacementNamed(context, '/chooseSheet');
+    });
 
   Widget _chooseSheetPage(BuildContext context) =>
     ChooseSheetPage((sheetFile) async {
