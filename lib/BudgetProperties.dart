@@ -12,7 +12,5 @@ class BudgetProperties {
   final List<String> owners;
   final List<String> types;
 
-  final int nextFreeRowIndex;
-
-  BudgetProperties(this.spreadsheet, this.sheet, this.categories, this.owners, this.types, this.nextFreeRowIndex);
+  BudgetProperties(this.spreadsheet, this.sheet, this.categories, this.owners, this.types);
 }

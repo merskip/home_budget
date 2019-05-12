@@ -4,6 +4,7 @@ import 'package:googleapis/sheets/v4.dart' as sheets;
 import 'BudgetProperties.dart';
 import 'Product.dart';
 import 'main.dart';
+import 'constants.dart';
 
 class AddProductForm extends StatefulWidget {
 
@@ -39,16 +40,14 @@ class _AddProductFormState extends State<AddProductForm> {
   }
 
   _addProductToSheet(Product product) async {
-    final sheetTitle = widget.budgetProperties.sheet.properties.title;
-    final rowIndex = widget.budgetProperties.nextFreeRowIndex;
-    final range = "'$sheetTitle'!B$rowIndex:G$rowIndex";
+    final spreadsheetId = widget.budgetProperties.spreadsheet.spreadsheetId;
     final valueRange = sheets.ValueRange()
-      ..range = range
+      ..range = budgetDataRange
       ..values = [[product.productName, product.amount, product.date, product.category, product.owner, product.type]]
       ..majorDimension = "ROWS";
 
     await sheets.SheetsApi(httpClient).spreadsheets.values
-      .update(valueRange, widget.budgetProperties.spreadsheet.spreadsheetId, range, valueInputOption: "USER_ENTERED");
+      .append(valueRange, spreadsheetId, valueRange.range, valueInputOption: "USER_ENTERED");
     Navigator.of(context).pop();
   }
 

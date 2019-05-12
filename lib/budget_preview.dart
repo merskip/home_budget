@@ -4,6 +4,7 @@ import 'package:googleapis/sheets/v4.dart';
 import 'BudgetProperties.dart';
 import 'Product.dart';
 import 'main.dart';
+import 'constants.dart';
 
 class BudgetPreviewPage extends StatefulWidget {
 
@@ -12,10 +13,10 @@ class BudgetPreviewPage extends StatefulWidget {
   BudgetPreviewPage({Key key, this.sheetId}) : super(key: key);
 
   @override
-  _BudgetPreviewPageState createState() => _BudgetPreviewPageState();
+  _BudgetPreviewState createState() => _BudgetPreviewState();
 }
 
-class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
+class _BudgetPreviewState extends State<BudgetPreviewPage> {
 
   Sheet sheet;
   BudgetProperties budgetProperties;
@@ -29,15 +30,17 @@ class _BudgetPreviewPageState extends State<BudgetPreviewPage> {
   }
 
   _fetchSheet() async {
-    final spreadsheet = await SheetsApi(httpClient).spreadsheets.get(widget.sheetId, includeGridData: true);
-    final firstSheet = spreadsheet.sheets[0];
+    final spreadsheet = await SheetsApi(httpClient).spreadsheets.get(widget.sheetId, ranges: [budgetDataRange], includeGridData: true);
+
+    final firstSheet = spreadsheet.sheets.first;
+
     final products = _getProductsFromSheet(firstSheet);
 
-    final firstProductRow = firstSheet.data.first.rowData[2];
-    final categories = await _getDataValidationValues(_getValueAtRange, firstProductRow.values[4]);
-    final owners = await _getDataValidationValues(_getValueAtRange, firstProductRow.values[5]);
-    final types = await _getDataValidationValues(_getValueAtRange, firstProductRow.values[6]);
-    final budgetProperties = BudgetProperties(spreadsheet, firstSheet, categories, owners, types, products.length + 3);
+    final firstDataRow = firstSheet.data.first.rowData.first;
+    final categories = await _getDataValidationValues(_getValueAtRange, firstDataRow.values[budgetCategoryIndex]);
+    final owners = await _getDataValidationValues(_getValueAtRange, firstDataRow.values[budgetOwnerIndex]);
+    final types = await _getDataValidationValues(_getValueAtRange, firstDataRow.values[budgetTypeIndex]);
+    final budgetProperties = BudgetProperties(spreadsheet, firstSheet, categories, owners, types);
 
     print(products);
     setState(() {
