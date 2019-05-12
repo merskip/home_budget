@@ -116,7 +116,7 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
 
   Widget _chooseSpreadsheetPage(BuildContext context) =>
     ChooseSpreadsheetPage((spreadsheet) async =>
-      Navigator.pushReplacementNamed(
+      Navigator.pushNamed(
         context, '/spreadsheetConfiguration',
         arguments: {"spreadsheetFile": spreadsheet}
       )
