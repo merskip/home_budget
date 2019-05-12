@@ -24,6 +24,7 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
   Spreadsheet spreadsheet;
 
   Sheet selectedSheet;
+  String enteredDataRange;
 
   @override
   void initState() {
@@ -54,7 +55,8 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _sheetsChips(context)
+            _sheetsChips(context),
+            if (selectedSheet != null) _sheetConfiguration(selectedSheet, context)
           ],
         )
       ),
@@ -68,7 +70,7 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
         Wrap(
           spacing: 8,
           children: spreadsheet.sheets.map((sheet) =>
-            RawChip(
+            ChoiceChip(
               label: Text(sheet.properties.title),
               selected: selectedSheet == sheet,
               onSelected: (isSelected) {
@@ -83,4 +85,28 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
           ).toList(),
         )
       ]);
+
+  Widget _sheetConfiguration(Sheet sheet, BuildContext context) =>
+    Column(
+      children: <Widget>[
+        SizedBox(height: 16),
+        _dataRangeTextField(context)
+      ]
+    );
+
+  Widget _dataRangeTextField(BuildContext context) =>
+    TextField(
+      decoration: InputDecoration(
+        border: OutlineInputBorder(),
+        labelText: "Data range",
+        hintText: "A1:D"
+      ),
+      autofocus: true,
+      textInputAction: TextInputAction.next,
+      onSubmitted: (input) {
+        setState(() {
+          this.enteredDataRange = input;
+        });
+      },
+    );
 }
