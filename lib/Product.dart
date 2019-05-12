@@ -1,5 +1,5 @@
 import 'package:googleapis/sheets/v4.dart';
-import 'constants.dart';
+import 'model/constants.dart';
 
 class Product {
   final String productName;

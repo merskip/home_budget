@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:googleapis/sheets/v4.dart' as sheets;
-import 'BudgetProperties.dart';
-import 'Product.dart';
-import 'main.dart';
-import 'constants.dart';
+import '../BudgetProperties.dart';
+import '../Product.dart';
+import 'package:home_budget/page/main.dart';
+import 'package:home_budget/model/constants.dart';
 
 class AddProductForm extends StatefulWidget {
 

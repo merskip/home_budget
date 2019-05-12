@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart';
@@ -5,11 +7,12 @@ import 'package:googleapis/sheets/v4.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'add_product_form.dart';
-import 'constants.dart';
-import 'google_http_client.dart';
 import 'sign_in_page.dart';
 import 'choose_sheet_page.dart';
 import 'budget_preview.dart';
+import '../model/google_http_client.dart';
+import '../model/constants.dart';
+import 'spreadsheet_configuration_page.dart';
 
 GoogleSignIn googleSignIn = GoogleSignIn(scopes: [
   'email',
@@ -72,24 +75,35 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
         else if (account == null)
           return _singInPage(context);
         else if (sheetId == null)
-          return _chooseSheetPage(context);
+          return _chooseSpreadsheetPage(context);
         else
           return _budgetPreview(sheetId, context);
       }),
       routes: <String, WidgetBuilder>{
-        '/chooseSheet': (BuildContext context) => _chooseSheetPage(context),
+        '/chooseSpreadsheet': (BuildContext context) => _chooseSpreadsheetPage(context),
+        '/spreadsheetConfiguration': (BuildContext context) {
+          final arguments = _getMapArguments(context);
+          final spreadsheetFile = arguments["spreadsheetFile"] as File;
+          return _spreadsheetConfigurationPage(spreadsheetFile, context);
+        },
         '/budgetPreview': (BuildContext context) {
-          final arguments = ModalRoute.of(context).settings.arguments as Map<String, dynamic>;
+          final arguments = _getMapArguments(context);
           final file = arguments["file"] as File;
           return _budgetPreview(file.id, context);
         },
         '/add_product': (BuildContext context) {
-          final arguments = ModalRoute.of(context).settings.arguments as Map<String, dynamic>;
+          final arguments = _getMapArguments(context);
           return new AddProductForm(arguments["budget_properties"]);
         },
       },
     );
   }
+
+  Map<String, dynamic> _getMapArguments(BuildContext context) =>
+    ModalRoute
+      .of(context)
+      .settings
+      .arguments as Map<String, dynamic>;
 
   Widget _loadingScreen(BuildContext context) =>
     Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -97,17 +111,23 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
   Widget _singInPage(BuildContext context) =>
     SignInPage(onSignIn: () async {
       await _configureAuthentication();
-      Navigator.pushReplacementNamed(context, '/chooseSheet');
+      Navigator.pushReplacementNamed(context, '/chooseSpreadsheet');
     });
 
-  Widget _chooseSheetPage(BuildContext context) =>
-    ChooseSheetPage((sheetFile) async {
+  Widget _chooseSpreadsheetPage(BuildContext context) =>
+    ChooseSpreadsheetPage((spreadsheet) async =>
+      Navigator.pushReplacementNamed(
+        context, '/spreadsheetConfiguration',
+        arguments: {"spreadsheetFile": spreadsheet}
+      )
+    );
+
+  Widget _spreadsheetConfigurationPage(File spreadsheetFile, BuildContext context) =>
+    SpreadsheetConfigurationPage(spreadsheetFile, (budgetConfiguration) async {
       final preferences = await SharedPreferences.getInstance();
-      preferences.setString(prefsSheetId, sheetFile.id);
-
-      Navigator.pushReplacementNamed(context, '/budgetPreview', arguments: {"file": sheetFile});
+      preferences.setString(prefsBudgetConfiguration, jsonEncode(budgetConfiguration));
     });
 
-  Widget _budgetPreview(String sheetId, BuildContext context) =>
+  _budgetPreview(String sheetId, BuildContext context) =>
     BudgetPreviewPage(sheetId: sheetId);
 }

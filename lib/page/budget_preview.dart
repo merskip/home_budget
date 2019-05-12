@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:googleapis/sheets/v4.dart';
 
-import 'BudgetProperties.dart';
-import 'Product.dart';
-import 'main.dart';
-import 'constants.dart';
+
+import 'package:home_budget/page/main.dart';
+import 'package:home_budget/model/constants.dart';
+
+import '../BudgetProperties.dart';
+import '../Product.dart';
 
 class BudgetPreviewPage extends StatefulWidget {
 

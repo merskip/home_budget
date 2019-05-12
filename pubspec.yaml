@@ -24,6 +24,8 @@ dependencies:
   googleapis: ^0.53.0
   intl: ^0.15.8
   shared_preferences: ^0.4.3
+  build_runner: ^1.0.0
+  json_serializable: ^2.0.0
 
 dev_dependencies:
   flutter_test:

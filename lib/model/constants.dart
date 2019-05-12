@@ -1,6 +1,7 @@
 
 
 const prefsSheetId = "sheet_id";
+const prefsBudgetConfiguration = "budget_configuration";
 
 const budgetDataRange = "'MAJ 2019'!B3:G";
 const budgetNameIndex = 0;

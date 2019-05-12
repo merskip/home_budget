@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:googleapis/drive/v3.dart';
-import 'main.dart';
+import 'package:home_budget/page/main.dart';
 
-class ChooseSheetPage extends StatefulWidget {
+class ChooseSpreadsheetPage extends StatefulWidget {
 
   final Function(File) callback;
 
-  ChooseSheetPage(this.callback, {Key key}) : super(key: key);
+  ChooseSpreadsheetPage(this.callback, {Key key}) : super(key: key);
 
   @override
-  _ChooseSheetState createState() => _ChooseSheetState();
+  _ChooseSpreadsheetState createState() => _ChooseSpreadsheetState();
 }
 
-class _ChooseSheetState extends State<ChooseSheetPage> {
+class _ChooseSpreadsheetState extends State<ChooseSpreadsheetPage> {
 
   FileList files;
 
@@ -41,7 +41,7 @@ class _ChooseSheetState extends State<ChooseSheetPage> {
   @override
   Widget build(BuildContext context) =>
     Scaffold(
-      appBar: AppBar(title: Text("Choose your budget sheet")),
+      appBar: AppBar(title: Text("Choose your budget spreadsheet")),
       body: files == null
         ? Center(child: CircularProgressIndicator())
         : GridView.count(
