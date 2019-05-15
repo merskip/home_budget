@@ -18,6 +18,7 @@ Map<String, dynamic> _$EntryMetadataToJson(EntryMetadata instance) =>
 
 CellMetadata _$CellMetadataFromJson(Map<String, dynamic> json) {
   return CellMetadata(
+      json['title'] as String,
       _$enumDecodeNullable(_$DisplayTypeEnumMap, json['displayType']),
       _$enumDecodeNullable(_$ValueValidationEnumMap, json['valueValidation']),
       json['dateFormat'] as String,
@@ -26,6 +27,7 @@ CellMetadata _$CellMetadataFromJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> _$CellMetadataToJson(CellMetadata instance) =>
     <String, dynamic>{
+      'title': instance.title,
       'displayType': _$DisplayTypeEnumMap[instance.displayType],
       'valueValidation': _$ValueValidationEnumMap[instance.valueValidation],
       'dateFormat': instance.dateFormat,
