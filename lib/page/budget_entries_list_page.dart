@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:googleapis/sheets/v4.dart' show SheetsApi;
+import 'package:googleapis/sheets/v4.dart' show SheetsApi, Sheet;
 import "package:collection/collection.dart";
 import 'package:home_budget/model/budget_configuration.dart';
 import 'package:home_budget/model/entries_reader.dart';
@@ -21,6 +21,8 @@ class BudgetEntriesListPage extends StatefulWidget {
 class _BudgetEntriesListState extends State<BudgetEntriesListPage> {
 
   BudgetConfiguration budgetConfiguration;
+
+  Sheet sheet;
   List<Entry> entries;
   List<ListItem> listItems;
 
@@ -36,11 +38,11 @@ class _BudgetEntriesListState extends State<BudgetEntriesListPage> {
   _fetchBudget() async {
     final dataRangeFirstPage = budgetConfiguration.dataRange + "100";
     final spreadsheet = await SheetsApi(httpClient).spreadsheets.get(budgetConfiguration.spreadsheetId, ranges: [dataRangeFirstPage], includeGridData: true);
-
-    final gridData = spreadsheet.sheets.first.data.first; // Just get first interesting grid data, no should be more data
+    final sheet = spreadsheet.sheets.first;
+    final gridData = sheet.data.first; // Just get first interesting grid data, no should be more data
 
     final entriesReader = EntriesReader(budgetConfiguration);
-    final entries = entriesReader.readFromGridData(gridData);
+    final entries = entriesReader.readFromGridData(gridData).reversed.toList();
     final entriesGroupedByDate = groupBy(entries, (Entry entry) => entry.date);
 
     final listItems = <ListItem>[];
@@ -50,6 +52,7 @@ class _BudgetEntriesListState extends State<BudgetEntriesListPage> {
     });
 
     setState(() {
+      this.sheet = sheet;
       this.entries = entries;
       this.listItems = listItems;
     });
@@ -59,7 +62,7 @@ class _BudgetEntriesListState extends State<BudgetEntriesListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: listItems == null ? Text("Loading budget...") : Text("Budget")
+        title: sheet == null ? Text("Loading budget...") : Text(sheet.properties.title)
       ),
       body: listItems == null
         ? Center(child: CircularProgressIndicator())
@@ -71,6 +74,8 @@ class _BudgetEntriesListState extends State<BudgetEntriesListPage> {
     Scrollbar(
       child: ListView.builder(
         itemCount: listItems.length,
+        padding: EdgeInsets.all(8),
+        physics: BouncingScrollPhysics(),
         itemBuilder: (context, index) {
           final listItem = listItems[index];
           if (listItem is DateHeaderItem)
@@ -83,16 +88,29 @@ class _BudgetEntriesListState extends State<BudgetEntriesListPage> {
   Widget _dateHeaderItem(DateHeaderItem item) =>
     Padding(
       padding: EdgeInsets.all(16),
-      child: Text(DateFormat("EEEE, d MMMM yyyy").format(item.date))
+      child: Text(
+        DateFormat("EEEE, d MMMM yyyy").format(item.date)
+      )
     );
 
-  Widget _entryItem(EntryItem item) =>
-    Card(
+  Widget _entryItem(EntryItem item) {
+    final categoryMarkRune = item.entry.category?.runes?.first;
+    final categoryText = categoryMarkRune != null ? String.fromCharCode(categoryMarkRune) : "?";
+    return Card(
       child: ListTile(
+        leading: Container(
+          alignment: AlignmentDirectional.centerEnd,
+          width: 32,
+          child: Text(
+            categoryText,
+            style: TextStyle(fontSize: 21)
+          ),
+        ),
         title: Text(item.entry.title),
         subtitle: Text(item.entry.amount),
       )
     );
+  }
 }
 
 abstract class ListItem {}
