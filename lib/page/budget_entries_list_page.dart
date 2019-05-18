@@ -42,7 +42,10 @@ class _BudgetEntriesListState extends State<BudgetEntriesListPage> {
     final gridData = sheet.data.first; // Just get first interesting grid data, no should be more data
 
     final entriesReader = EntriesReader(budgetConfiguration);
-    final entries = entriesReader.readFromGridData(gridData).reversed.toList();
+    final entries = entriesReader
+      .readFromGridData(gridData)
+      .reversed
+      .toList();
     final entriesGroupedByDate = groupBy(entries, (Entry entry) => entry.date);
 
     final listItems = <ListItem>[];
@@ -59,54 +62,30 @@ class _BudgetEntriesListState extends State<BudgetEntriesListPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: sheet == null ? Text("Loading budget...") : Text(sheet.properties.title)
-      ),
-      body: listItems == null
-        ? Center(child: CircularProgressIndicator())
-        : _entriesListView(context),
-      bottomNavigationBar: BottomAppBar(
-        shape: CircularNotchedRectangle(),
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            _BottomAppBarButton(
-              icon: Icons.home, title: "Home",
-              isSelected: true,
-              onPressed: () {},
-            ),
-            _BottomAppBarButton(
-              icon: Icons.folder, title: "Budgets",
-              isSelected: false,
-              onPressed: () {},
-            ),
-          ],
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () {},
-      )
-    );
-  }
+  Widget build(BuildContext context) =>
+    listItems == null
+      ? Center(child: CircularProgressIndicator())
+      : _entriesListView(context);
 
   Widget _entriesListView(BuildContext context) =>
-    Scrollbar(
-      child: ListView.builder(
-        itemCount: listItems.length,
-        padding: EdgeInsets.all(8),
-        physics: BouncingScrollPhysics(),
-        itemBuilder: (context, index) {
-          final listItem = listItems[index];
-          if (listItem is DateHeaderItem)
-            return _dateHeaderItem(listItem);
-          else if (listItem is EntryItem)
-            return _entryItem(listItem);
-        })
+    CustomScrollView(
+      physics: BouncingScrollPhysics(),
+      slivers: <Widget>[
+        SliverAppBar(
+          expandedHeight: 200,
+          title: Text(sheet.properties.title),
+        ),
+        SliverList(
+          delegate: SliverChildBuilderDelegate((BuildContext context, int index) {
+            final listItem = listItems[index];
+            if (listItem is DateHeaderItem)
+              return _dateHeaderItem(listItem);
+            else if (listItem is EntryItem)
+              return _entryItem(listItem);
+          },
+            childCount: listItems.length),
+        )
+      ]
     );
 
   Widget _dateHeaderItem(DateHeaderItem item) =>
@@ -151,36 +130,3 @@ class EntryItem implements ListItem {
   EntryItem(this.entry);
 }
 
-class _BottomAppBarButton extends StatelessWidget {
-
-  final IconData icon;
-  final String title;
-  final bool isSelected;
-  final VoidCallback onPressed;
-
-  _BottomAppBarButton({Key key, this.icon, this.title, this.isSelected, this.onPressed}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-
-    final theme = Theme.of(context);
-    final color = isSelected ? theme.accentColor : theme.hintColor;
-
-    return InkWell(
-      onTap: onPressed,
-      customBorder: CircleBorder(),
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 48),
-        child: Container(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Icon(icon, color: color),
-              Text(title, style: TextStyle(color: color, fontSize: 12))
-            ],
-          )
-        )
-      )
-    );
-  }
-}

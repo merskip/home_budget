@@ -7,6 +7,7 @@ import 'package:googleapis/sheets/v4.dart';
 import 'package:home_budget/model/budget_configuration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'main_page.dart';
 import 'sign_in_page.dart';
 import 'choose_sheet_page.dart';
 import 'budget_entries_list_page.dart';
@@ -85,7 +86,7 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
         else if (budgetConfiguration == null)
           return _chooseSpreadsheetPage(context);
         else
-          return _budgetPreview(budgetConfiguration, context);
+          return _mainPage(budgetConfiguration, context);
       }),
       routes: <String, WidgetBuilder>{
         '/chooseSpreadsheet': (BuildContext context) => _chooseSpreadsheetPage(context),
@@ -97,7 +98,7 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
         '/budgetPreview': (BuildContext context) {
           final arguments = _getMapArguments(context);
           final budgetConfiguration = arguments["budgetConfiguration"] as BudgetConfiguration;
-          return _budgetPreview(budgetConfiguration, context);
+          return _mainPage(budgetConfiguration, context);
         }
       },
     );
@@ -134,6 +135,6 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
   Widget _spreadsheetConfigurationPage(File spreadsheetFile, BuildContext context) =>
     SpreadsheetConfigurationPage(spreadsheetFile);
 
-  _budgetPreview(BudgetConfiguration budgetConfiguration, BuildContext context) =>
-    BudgetEntriesListPage(budgetConfiguration: budgetConfiguration);
+  _mainPage(BudgetConfiguration budgetConfiguration, BuildContext context) =>
+    MainPage(budgetConfiguration: budgetConfiguration);
 }
