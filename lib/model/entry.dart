@@ -1,4 +1,5 @@
 import 'entry_metadata.dart';
+import 'package:intl/intl.dart';
 
 class Entry {
 
@@ -8,14 +9,22 @@ class Entry {
 
   String get title => _findEntryValueOrNull(DisplayType.title).value;
 
-  String get date => _findEntryValueOrNull(DisplayType.date).value;
+  DateTime get date {
+    final entryValue = _findEntryValueOrNull(DisplayType.date);
+    return DateFormat(entryValue.metadata.dateFormat).parse(entryValue.value);
+  }
 
   String get amount => _findEntryValueOrNull(DisplayType.amount).value;
 
   String get category => _findEntryValueOrNull(DisplayType.category).value;
 
+
+
   EntryValue _findEntryValueOrNull(DisplayType displayType) =>
     values.firstWhere((value) => value.metadata.displayType == displayType);
+
+  bool isEmpty() =>
+    values.first.value == null || values.first.value == "";
 
   @override
   String toString() => "Entry{title: $title, amount: $amount, date: $date, category: $category}";

@@ -103,7 +103,8 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
 
   String _getDateFormat(CellData cellData) {
     if (cellData.effectiveFormat.numberFormat?.type == "DATE") {
-      return cellData.effectiveFormat.numberFormat?.pattern;
+      final pattern = cellData.effectiveFormat.numberFormat?.pattern;
+      return pattern.replaceAll("\"", "'"); // Fix difference escape character from Sheets API and for Dart
     }
     return null;
   }

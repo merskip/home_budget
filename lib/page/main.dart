@@ -7,10 +7,9 @@ import 'package:googleapis/sheets/v4.dart';
 import 'package:home_budget/model/budget_configuration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'add_product_form.dart';
 import 'sign_in_page.dart';
 import 'choose_sheet_page.dart';
-import 'budget_preview.dart';
+import 'budget_entries_list_page.dart';
 import '../model/google_http_client.dart';
 import '../model/constants.dart';
 import 'spreadsheet_configuration_page.dart';
@@ -51,7 +50,15 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
 
       setState(() {
         this.account = account;
-        this.budgetConfiguration = BudgetConfiguration.fromJson(jsonDecode(preferences.getString(prefsBudgetConfiguration)));
+        try {
+          final budgetConfigurationJson = preferences.getString(prefsBudgetConfiguration);
+          if (budgetConfigurationJson != null)
+            this.budgetConfiguration = BudgetConfiguration.fromJson(jsonDecode(budgetConfigurationJson));
+        }
+        catch (e) {
+          preferences.remove(prefsBudgetConfiguration);
+          print(e);
+        }
         this.loading = false;
       });
     });
@@ -91,11 +98,7 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
           final arguments = _getMapArguments(context);
           final budgetConfiguration = arguments["budgetConfiguration"] as BudgetConfiguration;
           return _budgetPreview(budgetConfiguration, context);
-        },
-        '/add_product': (BuildContext context) {
-          final arguments = _getMapArguments(context);
-          return new AddProductForm(arguments["budget_properties"]);
-        },
+        }
       },
     );
   }
@@ -125,12 +128,12 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
       final preferences = await SharedPreferences.getInstance();
       preferences.setString(prefsBudgetConfiguration, jsonEncode(budgetConfiguration));
 
-      Navigator.of(context).pushNamedAndRemoveUntil("budgetPreview", (route) => false, arguments: budgetConfiguration);
+      Navigator.of(context).pushNamedAndRemoveUntil("/budgetPreview", (route) => false, arguments: budgetConfiguration);
     });
 
   Widget _spreadsheetConfigurationPage(File spreadsheetFile, BuildContext context) =>
     SpreadsheetConfigurationPage(spreadsheetFile);
 
   _budgetPreview(BudgetConfiguration budgetConfiguration, BuildContext context) =>
-    BudgetPreviewPage(budgetConfiguration: budgetConfiguration);
+    BudgetEntriesListPage(budgetConfiguration: budgetConfiguration);
 }
