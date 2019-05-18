@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'package:googleapis/sheets/v4.dart' show SheetsApi, Spreadsheet, Sheet, CellData;
+import 'package:home_budget/model/constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'entry_cell_configuration_page.dart';
 import 'main.dart';
 import '../model/budget_configuration.dart';
 import '../model/entry_metadata.dart';
@@ -10,9 +13,7 @@ class SpreadsheetConfigurationPage extends StatefulWidget {
 
   final File spreadsheet;
 
-  final Function(BudgetConfiguration) callback;
-
-  const SpreadsheetConfigurationPage(this.spreadsheet, this.callback, {Key key}) : super(key: key);
+  const SpreadsheetConfigurationPage(this.spreadsheet, {Key key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => SpreadsheetConfigurationState();
@@ -57,6 +58,7 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
       final endColumn = _endColumnController.text;
       final dataRange = "'$sheetTitle'!$startColumn$startRow:$endColumn";
       final firstRowDataRange = dataRange + startRow;
+      this.enteredDataRange = dataRange;
       _fetchFirstDataRow(firstRowDataRange);
     }
   }
@@ -66,18 +68,25 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
     final singleSheet = spreadsheetWithData.sheets.first;
     final gridData = singleSheet.data.first;
     final firstRowCells = gridData.rowData.first.values;
-    print(firstRowCells);
-    final cellsMetadataList = firstRowCells.asMap().map((index, cellData) {
+
+    final cellsMetadataFutureList = firstRowCells.asMap().map((index, cellData) {
       return MapEntry(index, _createInitialCellMetadata(index, cellData));
     }).values.toList();
+    final cellsMetadataList = await Future.wait(cellsMetadataFutureList);
 
     setState(() {
       this.cellsMetadataList = cellsMetadataList;
     });
   }
 
-  CellMetadata _createInitialCellMetadata(int index, CellData cellData) =>
-    CellMetadata("Column ${index + 1}", _getDisplayType(index, cellData), null, null, null);
+  Future<CellMetadata> _createInitialCellMetadata(int index, CellData cellData) async {
+    final displayType = _getDisplayType(index, cellData);
+    final validationValues = await _getValidationValues(cellData);
+    final valueValidation = validationValues != null ? ValueValidation.oneOfList : ValueValidation.none;
+    final dateFormat = _getDateFormat(cellData);
+
+    return CellMetadata("Column ${index + 1}", displayType, valueValidation, dateFormat, validationValues);
+  }
 
   DisplayType _getDisplayType(int index, CellData cellData) {
     switch (cellData.effectiveFormat.numberFormat?.type) {
@@ -92,6 +101,38 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
     }
   }
 
+  String _getDateFormat(CellData cellData) {
+    if (cellData.effectiveFormat.numberFormat?.type == "DATE") {
+      return cellData.effectiveFormat.numberFormat?.pattern;
+    }
+    return null;
+  }
+
+  Future<List<String>> _getValidationValues(CellData cellData) async {
+    final condition = cellData.dataValidation?.condition;
+    if (condition?.type == "ONE_OF_LIST") {
+      return condition.values.map((conditionValue) => conditionValue.userEnteredValue).toList();
+    }
+    else if (condition?.type == "ONE_OF_RANGE") {
+      final range = condition.values.first.userEnteredValue.substring(1);
+      final values = await SheetsApi(httpClient).spreadsheets.values.get(spreadsheet.spreadsheetId, range, majorDimension: "COLUMNS");
+      return values.values.first.map((object) => object.toString()).toList();
+    }
+    else {
+      return null;
+    }
+  }
+
+  _onConfirmationConfiguration(BuildContext context) async {
+    final budgetConfiguration = BudgetConfiguration(
+      spreadsheet.spreadsheetId,
+      selectedSheet.properties.sheetId.toString(),
+      enteredDataRange,
+      EntryMetadata(cellsMetadataList.asMap().map((index, cellMetadata) => MapEntry(index.toString(), cellMetadata)))
+    );
+    Navigator.of(context).pop(budgetConfiguration);
+  }
+
   @override
   Widget build(BuildContext context) =>
     Scaffold(
@@ -102,14 +143,16 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
     );
 
   Widget _configurationForm(BuildContext context) =>
-    Container(
-      padding: EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          _sheetsChips(context),
-          if (selectedSheet != null) _sheetConfiguration(selectedSheet, context)
-        ],
+    SingleChildScrollView(
+      child: Container(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _sheetsChips(context),
+            if (selectedSheet != null) _sheetConfiguration(selectedSheet, context)
+          ],
+        )
       )
     );
 
@@ -141,7 +184,11 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
     Column(children: <Widget>[
       SizedBox(height: 16),
       _dataRangeForm(context),
-      if (cellsMetadataList != null) _entriesConfiguration(context)
+      if (cellsMetadataList != null) _entriesConfiguration(context),
+      if (cellsMetadataList != null) RaisedButton(
+        child: Text("Confirm"),
+        onPressed: () => _onConfirmationConfiguration(context)
+      )
     ]);
 
   Widget _dataRangeForm(BuildContext context) =>
@@ -214,14 +261,24 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
   Widget _entriesConfiguration(BuildContext context) =>
     Column(
       children: List<Widget>.generate(cellsMetadataList.length, (i) {
-        return _entryCellWidget(context, cellsMetadataList[i]);
+        return _entryCellWidget(context, i, cellsMetadataList[i]);
       })
     );
 
-  Widget _entryCellWidget(BuildContext context, CellMetadata cellMetadata) =>
+  Widget _entryCellWidget(BuildContext context, int index, CellMetadata cellMetadata) =>
     ListTile(
       title: Text(cellMetadata.title),
       subtitle: Text(_getDisplayTypeText(cellMetadata.displayType)),
+      onTap: () async {
+        final newCellMetadata = await Navigator.push(context,
+          MaterialPageRoute(builder: (context) => EntryCellConfigurationPage(cellMetadata))
+        );
+        if (newCellMetadata != null) {
+          setState(() {
+            cellsMetadataList[index] = newCellMetadata;
+          });
+        }
+      },
     );
 
   String _getDisplayTypeText(DisplayType displayType) {

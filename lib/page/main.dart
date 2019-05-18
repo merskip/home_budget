@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'package:googleapis/sheets/v4.dart';
+import 'package:home_budget/model/budget_configuration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'add_product_form.dart';
@@ -33,7 +34,7 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
 
   var loading = true;
   GoogleSignInAccount account;
-  String sheetId;
+  BudgetConfiguration budgetConfiguration;
 
   @override
   void initState() {
@@ -50,7 +51,7 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
 
       setState(() {
         this.account = account;
-        this.sheetId = preferences.getString(prefsSheetId);
+        this.budgetConfiguration = BudgetConfiguration.fromJson(jsonDecode(preferences.getString(prefsBudgetConfiguration)));
         this.loading = false;
       });
     });
@@ -74,10 +75,10 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
           return _loadingScreen(context);
         else if (account == null)
           return _singInPage(context);
-        else if (sheetId == null)
+        else if (budgetConfiguration == null)
           return _chooseSpreadsheetPage(context);
         else
-          return _budgetPreview(sheetId, context);
+          return _budgetPreview(budgetConfiguration, context);
       }),
       routes: <String, WidgetBuilder>{
         '/chooseSpreadsheet': (BuildContext context) => _chooseSpreadsheetPage(context),
@@ -88,8 +89,8 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
         },
         '/budgetPreview': (BuildContext context) {
           final arguments = _getMapArguments(context);
-          final file = arguments["file"] as File;
-          return _budgetPreview(file.id, context);
+          final budgetConfiguration = arguments["budgetConfiguration"] as BudgetConfiguration;
+          return _budgetPreview(budgetConfiguration, context);
         },
         '/add_product': (BuildContext context) {
           final arguments = _getMapArguments(context);
@@ -115,19 +116,21 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
     });
 
   Widget _chooseSpreadsheetPage(BuildContext context) =>
-    ChooseSpreadsheetPage((spreadsheet) async =>
-      Navigator.pushNamed(
+    ChooseSpreadsheetPage((spreadsheet) async {
+      final budgetConfiguration = await Navigator.pushNamed(
         context, '/spreadsheetConfiguration',
         arguments: {"spreadsheetFile": spreadsheet}
-      )
-    );
+      );
 
-  Widget _spreadsheetConfigurationPage(File spreadsheetFile, BuildContext context) =>
-    SpreadsheetConfigurationPage(spreadsheetFile, (budgetConfiguration) async {
       final preferences = await SharedPreferences.getInstance();
       preferences.setString(prefsBudgetConfiguration, jsonEncode(budgetConfiguration));
+
+      Navigator.of(context).pushNamedAndRemoveUntil("budgetPreview", (route) => false, arguments: budgetConfiguration);
     });
 
-  _budgetPreview(String sheetId, BuildContext context) =>
-    BudgetPreviewPage(sheetId: sheetId);
+  Widget _spreadsheetConfigurationPage(File spreadsheetFile, BuildContext context) =>
+    SpreadsheetConfigurationPage(spreadsheetFile);
+
+  _budgetPreview(BudgetConfiguration budgetConfiguration, BuildContext context) =>
+    BudgetPreviewPage(budgetConfiguration: budgetConfiguration);
 }
