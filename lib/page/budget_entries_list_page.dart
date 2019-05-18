@@ -66,7 +66,31 @@ class _BudgetEntriesListState extends State<BudgetEntriesListPage> {
       ),
       body: listItems == null
         ? Center(child: CircularProgressIndicator())
-        : _entriesListView(context)
+        : _entriesListView(context),
+      bottomNavigationBar: BottomAppBar(
+        shape: CircularNotchedRectangle(),
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            _BottomAppBarButton(
+              icon: Icons.home, title: "Home",
+              isSelected: true,
+              onPressed: () {},
+            ),
+            _BottomAppBarButton(
+              icon: Icons.folder, title: "Budgets",
+              isSelected: false,
+              onPressed: () {},
+            ),
+          ],
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () {},
+      )
     );
   }
 
@@ -125,4 +149,38 @@ class EntryItem implements ListItem {
   final Entry entry;
 
   EntryItem(this.entry);
+}
+
+class _BottomAppBarButton extends StatelessWidget {
+
+  final IconData icon;
+  final String title;
+  final bool isSelected;
+  final VoidCallback onPressed;
+
+  _BottomAppBarButton({Key key, this.icon, this.title, this.isSelected, this.onPressed}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+
+    final theme = Theme.of(context);
+    final color = isSelected ? theme.accentColor : theme.hintColor;
+
+    return InkWell(
+      onTap: onPressed,
+      customBorder: CircleBorder(),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 48),
+        child: Container(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(icon, color: color),
+              Text(title, style: TextStyle(color: color, fontSize: 12))
+            ],
+          )
+        )
+      )
+    );
+  }
 }

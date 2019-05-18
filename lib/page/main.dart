@@ -74,8 +74,8 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
     return MaterialApp(
       title: 'Home Budget',
       theme: ThemeData(
-        primarySwatch: Colors.deepOrange,
-        buttonTheme: ButtonThemeData(buttonColor: Colors.deepOrange, textTheme: ButtonTextTheme.primary)
+        primarySwatch: Colors.indigo,
+        buttonTheme: ButtonThemeData(buttonColor: Colors.indigo, textTheme: ButtonTextTheme.primary)
       ),
       home: Builder(builder: (context) {
         if (loading)
