@@ -6,6 +6,7 @@ import 'package:home_budget/model/entries_reader.dart';
 import 'package:home_budget/model/entry.dart';
 
 import 'package:home_budget/page/main.dart';
+import 'package:home_budget/widget/budget_flexible_space_bar.dart';
 import 'package:intl/intl.dart';
 
 class BudgetEntriesListPage extends StatefulWidget {
@@ -72,18 +73,25 @@ class _BudgetEntriesListState extends State<BudgetEntriesListPage> {
       physics: BouncingScrollPhysics(),
       slivers: <Widget>[
         SliverAppBar(
-          expandedHeight: 200,
-          title: Text(sheet.properties.title),
+          expandedHeight: 128,
+          flexibleSpace: BudgetFlexibleSpaceBar(
+            subtitle: Text("Forecast budget"),
+            title: Text("-256,23 zł"),
+          )
         ),
-        SliverList(
-          delegate: SliverChildBuilderDelegate((BuildContext context, int index) {
-            final listItem = listItems[index];
-            if (listItem is DateHeaderItem)
-              return _dateHeaderItem(listItem);
-            else if (listItem is EntryItem)
-              return _entryItem(listItem);
-          },
-            childCount: listItems.length),
+        SliverPadding(
+          padding: EdgeInsets.only(bottom: 36),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                final listItem = listItems[index];
+                if (listItem is DateHeaderItem)
+                  return _dateHeaderItem(listItem);
+                else if (listItem is EntryItem)
+                  return _entryItem(listItem);
+              },
+              childCount: listItems.length),
+          )
         )
       ]
     );
