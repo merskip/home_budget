@@ -76,7 +76,10 @@ class HomeBudgetAppState extends State<HomeBudgetAppWidget> {
       title: 'Home Budget',
       theme: ThemeData(
         primarySwatch: Colors.indigo,
-        buttonTheme: ButtonThemeData(buttonColor: Colors.indigo, textTheme: ButtonTextTheme.primary)
+        buttonTheme: ButtonThemeData(
+          buttonColor: Colors.indigo,
+          textTheme: ButtonTextTheme.primary
+        )
       ),
       home: Builder(builder: (context) {
         if (loading)
