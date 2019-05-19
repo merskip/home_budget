@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:googleapis/sheets/v4.dart' show SheetsApi, ValueRange;
 import 'package:home_budget/model/budget_configuration.dart';
 import 'package:home_budget/model/entry_metadata.dart';
 import 'package:intl/intl.dart';
 
+import 'main.dart';
+
 class AddEntryPage extends StatefulWidget {
 
   final BudgetConfiguration budgetConfiguration;
-
   const AddEntryPage(this.budgetConfiguration, {Key key}) : super(key: key);
 
   @override
@@ -15,7 +17,45 @@ class AddEntryPage extends StatefulWidget {
 
 class AddEntryState extends State<AddEntryPage> {
 
+  List<CellMetadata> cellsMetadata;
   Map<CellMetadata, String> userEnteredValues = {};
+  bool _processingForm = false;
+
+  _onSubmit() async {
+    setState(() {
+      _processingForm = true;
+    });
+
+    final valueRequest = ValueRange();
+    valueRequest.majorDimension = "ROWS";
+    valueRequest.values = [userEnteredValues.values.toList()];
+
+    try {
+      await SheetsApi(httpClient).spreadsheets.values.append(
+        valueRequest,
+        widget.budgetConfiguration.spreadsheetId, widget.budgetConfiguration.dataRange,
+        valueInputOption: "USER_ENTERED"
+      );
+
+      setState(() {
+        Navigator.of(context).pop(true);
+      });
+    }
+    catch (exception, stackTrace) {
+      print(exception);
+      print(stackTrace);
+
+      setState(() {
+        _processingForm = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    cellsMetadata = widget.budgetConfiguration.entryMetadata.cellsMetadata.values.toList();
+  }
 
   @override
   Widget build(BuildContext context) =>
@@ -23,21 +63,26 @@ class AddEntryState extends State<AddEntryPage> {
       appBar: AppBar(
         elevation: 0.0,
         backgroundColor: Colors.transparent,
-        iconTheme: Theme
-          .of(context)
-          .iconTheme,
-        textTheme: Theme
-          .of(context)
-          .textTheme,
+        iconTheme: Theme.of(context).iconTheme,
+        textTheme: Theme.of(context).textTheme,
         title: Text("Add new an entry"),
       ),
       body: ListView.separated(
         padding: EdgeInsets.all(16),
         physics: BouncingScrollPhysics(),
-        itemCount: widget.budgetConfiguration.entryMetadata.cellsMetadata.length,
+        itemCount: cellsMetadata.length + 1,
         itemBuilder: (BuildContext context, int index) {
-          final cellMetadata = widget.budgetConfiguration.entryMetadata.cellsMetadata[index.toString()];
-          return _buildFormItem(context, cellMetadata);
+          if (index < cellsMetadata.length) {
+            final cellMetadata = cellsMetadata[index];
+            return _buildFormItem(context, cellMetadata);
+          }
+          else {
+            return RaisedButton(
+              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+              child: Text("Add entry"),
+              onPressed: !_processingForm ? _onSubmit : null
+            );
+          }
         },
         separatorBuilder: (BuildContext context, int index) => SizedBox(height: 16)
       )
@@ -69,6 +114,7 @@ class AddEntryState extends State<AddEntryPage> {
     controller.addListener(() {
       userEnteredValues[cellMetadata] = controller.text;
     });
+    userEnteredValues[cellMetadata] = controller.text;
 
     return TextField(
       decoration: InputDecoration(
@@ -76,7 +122,6 @@ class AddEntryState extends State<AddEntryPage> {
         border: OutlineInputBorder(),
         prefixIcon: isTitle ? Icon(Icons.title) : null,
       ),
-      autofocus: isTitle,
       controller: controller
     );
   }
@@ -87,6 +132,7 @@ class AddEntryState extends State<AddEntryPage> {
     controller.addListener(() {
       userEnteredValues[cellMetadata] = controller.text;
     });
+    userEnteredValues[cellMetadata] = controller.text;
 
     return TextField(
       decoration: InputDecoration(
@@ -104,6 +150,7 @@ class AddEntryState extends State<AddEntryPage> {
   _buildDateFormItem(BuildContext context, CellMetadata cellMetadata) {
     final dateFormat = DateFormat(cellMetadata.dateFormat);
     DateTime enteredDate = userEnteredValues[cellMetadata] != null ? dateFormat.parse(userEnteredValues[cellMetadata]) : DateTime.now();
+    userEnteredValues[cellMetadata] = dateFormat.format(enteredDate);
 
     final controller = TextEditingController(text: dateFormat.format(enteredDate));
     return InkWell(
@@ -141,6 +188,7 @@ class AddEntryState extends State<AddEntryPage> {
         });
       }
     );
+    userEnteredValues[cellMetadata] = delegate.groupValue;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

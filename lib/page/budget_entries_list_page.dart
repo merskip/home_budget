@@ -16,10 +16,10 @@ class BudgetEntriesListPage extends StatefulWidget {
   BudgetEntriesListPage({Key key, this.budgetConfiguration}) : super(key: key);
 
   @override
-  _BudgetEntriesListState createState() => _BudgetEntriesListState(budgetConfiguration);
+  BudgetEntriesListState createState() => BudgetEntriesListState(budgetConfiguration);
 }
 
-class _BudgetEntriesListState extends State<BudgetEntriesListPage> {
+class BudgetEntriesListState extends State<BudgetEntriesListPage> {
 
   BudgetConfiguration budgetConfiguration;
 
@@ -27,12 +27,18 @@ class _BudgetEntriesListState extends State<BudgetEntriesListPage> {
   List<Entry> entries;
   List<ListItem> listItems;
 
-  _BudgetEntriesListState(this.budgetConfiguration);
+  BudgetEntriesListState(this.budgetConfiguration);
 
   @override
   void initState() {
     super.initState();
 
+    _fetchBudget();
+  }
+
+  refreshBudget() {
+    entries = null;
+    listItems = null;
     _fetchBudget();
   }
 

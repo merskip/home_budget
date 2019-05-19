@@ -18,6 +18,8 @@ class _MainState extends State<MainPage> {
 
   int _selectedTabIndex = 0;
 
+  final _budgetEntriesKey = GlobalKey<BudgetEntriesListState>();
+
   _updateSelectedTab(int index) {
     setState(() {
       _selectedTabIndex = index;
@@ -25,9 +27,13 @@ class _MainState extends State<MainPage> {
   }
 
   _onSelectedAddEntry(BuildContext context) async {
-    Navigator.push(context,
+    final appended = await Navigator.push(context,
       MaterialPageRoute(builder: (context) => AddEntryPage(widget.budgetConfiguration))
-    );
+    ) ?? false;
+
+    if (appended) {
+      _budgetEntriesKey.currentState.refreshBudget();
+    }
   }
 
   @override
@@ -62,7 +68,7 @@ class _MainState extends State<MainPage> {
 
   Widget _selectedTabBody() {
     if (_selectedTabIndex == 0)
-      return BudgetEntriesListPage(budgetConfiguration: widget.budgetConfiguration);
+      return BudgetEntriesListPage(key: _budgetEntriesKey, budgetConfiguration: widget.budgetConfiguration);
     else if (_selectedTabIndex == 1)
       return null; // TODO Add budgets list
     else
