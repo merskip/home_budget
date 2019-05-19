@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:home_budget/model/budget_configuration.dart';
 
+import 'add_entry_page.dart';
 import 'budget_entries_list_page.dart';
 
 class MainPage extends StatefulWidget {
@@ -23,13 +24,19 @@ class _MainState extends State<MainPage> {
     });
   }
 
+  _onSelectedAddEntry(BuildContext context) async {
+    Navigator.push(context,
+      MaterialPageRoute(builder: (context) => AddEntryPage(widget.budgetConfiguration))
+    );
+  }
+
   @override
   Widget build(BuildContext context) =>
     Scaffold(
       body: _selectedTabBody(),
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),
-        child:  Row(
+        child: Row(
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
@@ -49,7 +56,7 @@ class _MainState extends State<MainPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () {},
+        onPressed: () => _onSelectedAddEntry(context),
       )
     );
 
