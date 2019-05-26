@@ -27,6 +27,8 @@ dependencies:
   build_runner: ^1.0.0
   json_serializable: ^2.0.0
   quiver: ^2.0.2
+  math_expressions: ^1.1.1
+  keyboard_actions: ^2.0.1
 
 dev_dependencies:
   flutter_test:

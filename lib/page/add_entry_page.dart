@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:googleapis/sheets/v4.dart' show SheetsApi, ValueRange;
+import 'package:math_expressions/math_expressions.dart';
+import 'package:keyboard_actions/keyboard_actions.dart';
 import 'package:home_budget/model/budget_configuration.dart';
 import 'package:home_budget/model/entry_metadata.dart';
 import 'package:intl/intl.dart';
@@ -9,6 +11,7 @@ import 'main.dart';
 class AddEntryPage extends StatefulWidget {
 
   final BudgetConfiguration budgetConfiguration;
+
   const AddEntryPage(this.budgetConfiguration, {Key key}) : super(key: key);
 
   @override
@@ -19,16 +22,25 @@ class AddEntryState extends State<AddEntryPage> {
 
   List<CellMetadata> cellsMetadata;
   Map<CellMetadata, String> userEnteredValues = {};
+  Map<CellMetadata, double> calculatedValues = {};
   bool _processingForm = false;
+
+  FocusNode _amountFocusNode = FocusNode();
+
+  Map<CellMetadata, TextEditingController> textEditingControllers = {};
 
   _onSubmit() async {
     setState(() {
       _processingForm = true;
     });
 
+    final values = cellsMetadata.map(
+        (cellMetadata) => calculatedValues[cellMetadata] ?? userEnteredValues[cellMetadata]
+    ).toList();
+
     final valueRequest = ValueRange();
     valueRequest.majorDimension = "ROWS";
-    valueRequest.values = [userEnteredValues.values.toList()];
+    valueRequest.values = [values];
 
     try {
       await SheetsApi(httpClient).spreadsheets.values.append(
@@ -63,28 +75,35 @@ class AddEntryState extends State<AddEntryPage> {
       appBar: AppBar(
         elevation: 0.0,
         backgroundColor: Colors.transparent,
-        iconTheme: Theme.of(context).iconTheme,
-        textTheme: Theme.of(context).textTheme,
+        iconTheme: Theme
+          .of(context)
+          .iconTheme,
+        textTheme: Theme
+          .of(context)
+          .textTheme,
         title: Text("Add new an entry"),
       ),
-      body: ListView.separated(
-        padding: EdgeInsets.all(16),
-        physics: BouncingScrollPhysics(),
-        itemCount: cellsMetadata.length + 1,
-        itemBuilder: (BuildContext context, int index) {
-          if (index < cellsMetadata.length) {
-            final cellMetadata = cellsMetadata[index];
-            return _buildFormItem(context, cellMetadata);
-          }
-          else {
-            return RaisedButton(
-              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-              child: Text("Add entry"),
-              onPressed: !_processingForm ? _onSubmit : null
-            );
-          }
-        },
-        separatorBuilder: (BuildContext context, int index) => SizedBox(height: 16)
+      body: FormKeyboardActions(
+        child: ListView.separated(
+          controller: ScrollController(),
+          padding: EdgeInsets.all(16),
+          physics: BouncingScrollPhysics(),
+          itemCount: cellsMetadata.length + 1,
+          itemBuilder: (BuildContext context, int index) {
+            if (index < cellsMetadata.length) {
+              final cellMetadata = cellsMetadata[index];
+              return _buildFormItem(context, cellMetadata);
+            }
+            else {
+              return RaisedButton(
+                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                child: Text("Add entry"),
+                onPressed: !_processingForm ? _onSubmit : null
+              );
+            }
+          },
+          separatorBuilder: (BuildContext context, int index) => SizedBox(height: 16)
+        )
       )
     );
 
@@ -95,7 +114,7 @@ class AddEntryState extends State<AddEntryPage> {
         case DisplayType.title:
           return _buildTextFormItem(cellMetadata);
         case DisplayType.amount:
-          return _buildAmountFormItem(cellMetadata);
+          return _buildAmountFormItem(context, cellMetadata);
         case DisplayType.date:
           return _buildDateFormItem(context, cellMetadata);
         case DisplayType.category:
@@ -109,12 +128,9 @@ class AddEntryState extends State<AddEntryPage> {
 
   _buildTextFormItem(CellMetadata cellMetadata) {
     final isTitle = cellMetadata.displayType == DisplayType.title;
-    final value = userEnteredValues[cellMetadata] ?? "";
-    final controller = TextEditingController.fromValue(TextEditingValue(text: value, selection: TextSelection.collapsed(offset: value.length)));
-    controller.addListener(() {
-      userEnteredValues[cellMetadata] = controller.text;
-    });
-    userEnteredValues[cellMetadata] = controller.text;
+    final value = userEnteredValues.putIfAbsent(cellMetadata, () => "");
+    final controller = textEditingControllers.putIfAbsent(cellMetadata, () => TextEditingController(text: value));
+    controller.addListener(() => userEnteredValues[cellMetadata] = controller.text);
 
     return TextField(
       decoration: InputDecoration(
@@ -126,25 +142,81 @@ class AddEntryState extends State<AddEntryPage> {
     );
   }
 
-  _buildAmountFormItem(CellMetadata cellMetadata) {
-    final value = userEnteredValues[cellMetadata] ?? "";
-    final controller = TextEditingController.fromValue(TextEditingValue(text: value, selection: TextSelection.collapsed(offset: value.length)));
+  _buildAmountFormItem(BuildContext context, CellMetadata cellMetadata) {
+    final value = userEnteredValues.putIfAbsent(cellMetadata, () => "");
+    final controller = textEditingControllers.putIfAbsent(cellMetadata, () => TextEditingController(text: value));
+
     controller.addListener(() {
       userEnteredValues[cellMetadata] = controller.text;
+
+      setState(() {
+        calculatedValues[cellMetadata] = _calculateExpressionOrNull(controller.text);
+      });
     });
-    userEnteredValues[cellMetadata] = controller.text;
+
+    FormKeyboardActions.setKeyboardActions(context, KeyboardActionsConfig(
+      nextFocus: false,
+      actions: [
+        KeyboardAction(
+          focusNode: _amountFocusNode,
+          closeWidget: Row(
+            children: <Widget>[
+              _keyboardCharButton("+", controller),
+              _keyboardCharButton("-", controller),
+              _keyboardCharButton("*", controller),
+              _keyboardCharButton("/", controller),
+              _keyboardCharButton("(", controller),
+              _keyboardCharButton(")", controller),
+            ])
+        )
+      ]
+    ));
 
     return TextField(
       decoration: InputDecoration(
         labelText: cellMetadata.title,
         prefixIcon: Icon(Icons.attach_money),
-        suffixText: " zł ",
+        suffix: calculatedValues[cellMetadata] != null ? Text("= ${calculatedValues[cellMetadata]} zł") : Text("zł"),
         border: OutlineInputBorder(),
       ),
       textAlign: TextAlign.right,
+      focusNode: _amountFocusNode,
       keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
       controller: controller
     );
+  }
+
+  _keyboardCharButton(String text, TextEditingController controller) =>
+    SizedBox(
+      width: 48,
+      child: FlatButton(
+        child: Text(text, style: TextStyle(fontWeight: FontWeight.bold)),
+        onPressed: () {
+          setState(() {
+            controller.text = controller.text + text;
+            controller.selection = TextSelection.collapsed(offset: controller.text.length);
+          });
+        }
+      )
+    );
+
+  double _calculateExpressionOrNull(String text) {
+    final normalizedText = text.replaceAll(RegExp(r"[^0-9]+$"), ''); // Removing all non-number chars after the last number in string
+    return _evaluateComplexExpressionOrNull(text) ?? _evaluateComplexExpressionOrNull(normalizedText);
+  }
+
+  double _evaluateComplexExpressionOrNull(String text) {
+    try {
+      final expression = Parser().parse(text);
+      if (expression is Number)
+        return null;
+
+      final result = expression.evaluate(EvaluationType.REAL, ContextModel()) as double;
+      return (result * 100).round() / 100.0; // Round to 2 decimal places
+    }
+    catch (_) {
+      return null;
+    }
   }
 
   _buildDateFormItem(BuildContext context, CellMetadata cellMetadata) {
