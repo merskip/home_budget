@@ -53,7 +53,7 @@ class BudgetEntriesListState extends State<BudgetEntriesListPage> {
       .readFromGridData(gridData)
       .reversed
       .toList();
-    final entriesGroupedByDate = groupBy(entries, (Entry entry) => entry.date);
+    final entriesGroupedByDate = groupBy(entries, (Entry entry) => entry.date ?? DateTime.now());
 
     final listItems = <ListItem>[];
     entriesGroupedByDate.forEach((dateTime, entries) {
@@ -82,7 +82,7 @@ class BudgetEntriesListState extends State<BudgetEntriesListPage> {
           expandedHeight: 128,
           flexibleSpace: BudgetFlexibleSpaceBar(
             subtitle: Text("Forecast budget"),
-            title: Text("-256,23 zł"),
+            title: Text("TODO"),
           )
         ),
         SliverPadding(
@@ -123,8 +123,8 @@ class BudgetEntriesListState extends State<BudgetEntriesListPage> {
             style: TextStyle(fontSize: 21)
           ),
         ),
-        title: Text(item.entry.title),
-        subtitle: Text(item.entry.amount),
+        title: Text(item.entry.title ?? ""),
+        subtitle: Text(item.entry.amount ?? ""),
       )
     );
   }
