@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:googleapis/sheets/v4.dart' show SheetsApi, ValueRange;
 import 'package:math_expressions/math_expressions.dart';
 import 'package:keyboard_actions/keyboard_actions.dart';
@@ -75,12 +76,9 @@ class AddEntryState extends State<AddEntryPage> {
       appBar: AppBar(
         elevation: 0.0,
         backgroundColor: Colors.transparent,
-        iconTheme: Theme
-          .of(context)
-          .iconTheme,
-        textTheme: Theme
-          .of(context)
-          .textTheme,
+        iconTheme: Theme.of(context).iconTheme,
+        textTheme: Theme.of(context).textTheme,
+        brightness: Brightness.light,
         title: Text("Add new an entry"),
       ),
       body: FormKeyboardActions(
