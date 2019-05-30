@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../model/entry_metadata.dart';
+import 'package:home_budget/data/budget_sheet_config.dart';
 
 class EntryCellConfigurationPage extends StatefulWidget {
 
-  final CellMetadata cellMetadata;
+  final ColumnDescription cellMetadata;
 
   const EntryCellConfigurationPage(this.cellMetadata, {Key key}) : super(key: key);
 
@@ -28,7 +28,7 @@ class EntryCellConfigurationState extends State<EntryCellConfigurationPage> {
   }
 
   _onBackPressed(BuildContext context) {
-    final newCellMetadata = CellMetadata(
+    final newCellMetadata = ColumnDescription(
       _titleController.text,
       _selectedDisplayType,
       widget.cellMetadata.valueValidation,

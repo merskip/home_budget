@@ -1,41 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:googleapis/sheets/v4.dart' show SheetsApi, ValueRange;
+import 'package:home_budget/data/budget_sheet_config.dart';
 import 'package:math_expressions/math_expressions.dart';
 import 'package:keyboard_actions/keyboard_actions.dart';
-import 'package:home_budget/model/budget_configuration.dart';
-import 'package:home_budget/model/entry_metadata.dart';
 import 'package:intl/intl.dart';
 
-import 'main.dart';
+import 'package:home_budget/main.dart';
 
-class AddEntryPage extends StatefulWidget {
+class BudgetAddEntryScreen extends StatefulWidget {
 
-  final BudgetConfiguration budgetConfiguration;
+  final BudgetSheetConfig budgetSheetConfig;
 
-  const AddEntryPage(this.budgetConfiguration, {Key key}) : super(key: key);
+  const BudgetAddEntryScreen(this.budgetSheetConfig, {Key key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => AddEntryState();
 }
 
-class AddEntryState extends State<AddEntryPage> {
+class AddEntryState extends State<BudgetAddEntryScreen> {
 
-  List<CellMetadata> cellsMetadata;
-  Map<CellMetadata, String> userEnteredValues = {};
-  Map<CellMetadata, double> calculatedValues = {};
+  List<ColumnDescription> columns;
+  Map<ColumnDescription, String> userEnteredValues = {};
+  Map<ColumnDescription, double> calculatedValues = {};
   bool _processingForm = false;
 
   FocusNode _amountFocusNode = FocusNode();
 
-  Map<CellMetadata, TextEditingController> textEditingControllers = {};
+  Map<ColumnDescription, TextEditingController> textEditingControllers = {};
+
+  @override
+  void initState() {
+    super.initState();
+    columns = widget.budgetSheetConfig.columns;
+  }
 
   _onSubmit() async {
     setState(() {
       _processingForm = true;
     });
 
-    final values = cellsMetadata.map(
+    final values = columns.map(
         (cellMetadata) => calculatedValues[cellMetadata] ?? userEnteredValues[cellMetadata]
     ).toList();
 
@@ -46,7 +51,7 @@ class AddEntryState extends State<AddEntryPage> {
     try {
       await SheetsApi(httpClient).spreadsheets.values.append(
         valueRequest,
-        widget.budgetConfiguration.spreadsheetId, widget.budgetConfiguration.dataRange,
+        widget.budgetSheetConfig.spreadsheetId, widget.budgetSheetConfig.dataRange,
         valueInputOption: "USER_ENTERED"
       );
 
@@ -65,12 +70,6 @@ class AddEntryState extends State<AddEntryPage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    cellsMetadata = widget.budgetConfiguration.entryMetadata.cellsMetadata.values.toList();
-  }
-
-  @override
   Widget build(BuildContext context) =>
     Scaffold(
       appBar: AppBar(
@@ -86,10 +85,10 @@ class AddEntryState extends State<AddEntryPage> {
           controller: ScrollController(),
           padding: EdgeInsets.all(16),
           physics: BouncingScrollPhysics(),
-          itemCount: cellsMetadata.length + 1,
+          itemCount: columns.length + 1,
           itemBuilder: (BuildContext context, int index) {
-            if (index < cellsMetadata.length) {
-              final cellMetadata = cellsMetadata[index];
+            if (index < columns.length) {
+              final cellMetadata = columns[index];
               return _buildFormItem(context, cellMetadata);
             }
             else {
@@ -105,7 +104,7 @@ class AddEntryState extends State<AddEntryPage> {
       )
     );
 
-  _buildFormItem(BuildContext context, CellMetadata cellMetadata) {
+  _buildFormItem(BuildContext context, ColumnDescription cellMetadata) {
     if (cellMetadata.valueValidation == ValueValidation.none) {
       switch (cellMetadata.displayType) {
         case DisplayType.text:
@@ -124,7 +123,7 @@ class AddEntryState extends State<AddEntryPage> {
     }
   }
 
-  _buildTextFormItem(CellMetadata cellMetadata) {
+  _buildTextFormItem(ColumnDescription cellMetadata) {
     final isTitle = cellMetadata.displayType == DisplayType.title;
     final value = userEnteredValues.putIfAbsent(cellMetadata, () => "");
     final controller = textEditingControllers.putIfAbsent(cellMetadata, () => TextEditingController(text: value));
@@ -140,7 +139,7 @@ class AddEntryState extends State<AddEntryPage> {
     );
   }
 
-  _buildAmountFormItem(BuildContext context, CellMetadata cellMetadata) {
+  _buildAmountFormItem(BuildContext context, ColumnDescription cellMetadata) {
     final value = userEnteredValues.putIfAbsent(cellMetadata, () => "");
     final controller = textEditingControllers.putIfAbsent(cellMetadata, () => TextEditingController(text: value));
 
@@ -217,7 +216,7 @@ class AddEntryState extends State<AddEntryPage> {
     }
   }
 
-  _buildDateFormItem(BuildContext context, CellMetadata cellMetadata) {
+  _buildDateFormItem(BuildContext context, ColumnDescription cellMetadata) {
     final dateFormat = DateFormat(cellMetadata.dateFormat);
     DateTime enteredDate = userEnteredValues[cellMetadata] != null ? dateFormat.parse(userEnteredValues[cellMetadata]) : DateTime.now();
     userEnteredValues[cellMetadata] = dateFormat.format(enteredDate);
@@ -246,7 +245,7 @@ class AddEntryState extends State<AddEntryPage> {
     );
   }
 
-  _buildComboBoxFormItem(CellMetadata cellMetadata) {
+  _buildComboBoxFormItem(ColumnDescription cellMetadata) {
     final values = cellMetadata.validationValues;
     final delegate = _ComboBoxDelegate(
       itemCount: values.length,

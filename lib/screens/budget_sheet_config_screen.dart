@@ -1,25 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'package:googleapis/sheets/v4.dart' show SheetsApi, Spreadsheet, Sheet, CellData;
-import 'package:home_budget/model/constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_budget/data/budget_sheet_config.dart';
+import 'package:home_budget/main.dart';
 
 import 'entry_cell_configuration_page.dart';
-import 'main.dart';
-import '../model/budget_configuration.dart';
-import '../model/entry_metadata.dart';
 
-class SpreadsheetConfigurationPage extends StatefulWidget {
-
-  final File spreadsheet;
-
-  const SpreadsheetConfigurationPage(this.spreadsheet, {Key key}) : super(key: key);
+class BudgetSheetConfigScreen extends StatefulWidget {
 
   @override
-  State<StatefulWidget> createState() => SpreadsheetConfigurationState();
+  State<StatefulWidget> createState() => BudgetSheetConfigState();
 }
 
-class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> with SingleTickerProviderStateMixin {
+class BudgetSheetConfigState extends State<BudgetSheetConfigScreen> with SingleTickerProviderStateMixin {
 
   Spreadsheet spreadsheet;
 
@@ -34,7 +27,7 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
   final _endColumnController = TextEditingController();
   final _endColumnFocusNode = FocusNode();
 
-  List<CellMetadata> cellsMetadataList;
+  List<ColumnDescription> columns;
 
   @override
   void initState() {
@@ -44,7 +37,7 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
   }
 
   _fetchSpreadsheet() async {
-    final spreadsheet = await SheetsApi(httpClient).spreadsheets.get(widget.spreadsheet.id, includeGridData: false);
+    final spreadsheet = await SheetsApi(httpClient).spreadsheets.get(this.spreadsheet.spreadsheetId, includeGridData: false);
     setState(() {
       this.spreadsheet = spreadsheet;
     });
@@ -64,7 +57,7 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
   }
 
   _fetchFirstDataRow(rowRange) async {
-    final spreadsheetWithData = await SheetsApi(httpClient).spreadsheets.get(widget.spreadsheet.id, ranges: [rowRange], includeGridData: true);
+    final spreadsheetWithData = await SheetsApi(httpClient).spreadsheets.get(this.spreadsheet.spreadsheetId, ranges: [rowRange], includeGridData: true);
     final singleSheet = spreadsheetWithData.sheets.first;
     final gridData = singleSheet.data.first;
     final firstRowCells = gridData.rowData.first.values;
@@ -75,17 +68,17 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
     final cellsMetadataList = await Future.wait(cellsMetadataFutureList);
 
     setState(() {
-      this.cellsMetadataList = cellsMetadataList;
+      this.columns = cellsMetadataList;
     });
   }
 
-  Future<CellMetadata> _createInitialCellMetadata(int index, CellData cellData) async {
+  Future<ColumnDescription> _createInitialCellMetadata(int index, CellData cellData) async {
     final displayType = _getDisplayType(index, cellData);
     final validationValues = await _getValidationValues(cellData);
     final valueValidation = validationValues != null ? ValueValidation.oneOfList : ValueValidation.none;
     final dateFormat = _getDateFormat(cellData);
 
-    return CellMetadata("Column ${index + 1}", displayType, valueValidation, dateFormat, validationValues);
+    return ColumnDescription("Column ${index + 1}", displayType, valueValidation, dateFormat, validationValues);
   }
 
   DisplayType _getDisplayType(int index, CellData cellData) {
@@ -125,11 +118,11 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
   }
 
   _onConfirmationConfiguration(BuildContext context) async {
-    final budgetConfiguration = BudgetConfiguration(
+    final budgetConfiguration = BudgetSheetConfig(
       spreadsheet.spreadsheetId,
       selectedSheet.properties.sheetId.toString(),
       enteredDataRange,
-      EntryMetadata(cellsMetadataList.asMap().map((index, cellMetadata) => MapEntry(index.toString(), cellMetadata)))
+      columns
     );
     Navigator.of(context).pop(budgetConfiguration);
   }
@@ -185,8 +178,8 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
     Column(children: <Widget>[
       SizedBox(height: 16),
       _dataRangeForm(context),
-      if (cellsMetadataList != null) _entriesConfiguration(context),
-      if (cellsMetadataList != null) RaisedButton(
+      if (columns != null) _entriesConfiguration(context),
+      if (columns != null) RaisedButton(
         child: Text("Confirm"),
         onPressed: () => _onConfirmationConfiguration(context)
       )
@@ -261,12 +254,12 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
 
   Widget _entriesConfiguration(BuildContext context) =>
     Column(
-      children: List<Widget>.generate(cellsMetadataList.length, (i) {
-        return _entryCellWidget(context, i, cellsMetadataList[i]);
+      children: List<Widget>.generate(columns.length, (i) {
+        return _entryCellWidget(context, i, columns[i]);
       })
     );
 
-  Widget _entryCellWidget(BuildContext context, int index, CellMetadata cellMetadata) =>
+  Widget _entryCellWidget(BuildContext context, int index, ColumnDescription cellMetadata) =>
     ListTile(
       title: Text(cellMetadata.title),
       subtitle: Text(_getDisplayTypeText(cellMetadata.displayType)),
@@ -276,7 +269,7 @@ class SpreadsheetConfigurationState extends State<SpreadsheetConfigurationPage> 
         );
         if (newCellMetadata != null) {
           setState(() {
-            cellsMetadataList[index] = newCellMetadata;
+            columns[index] = newCellMetadata;
           });
         }
       },

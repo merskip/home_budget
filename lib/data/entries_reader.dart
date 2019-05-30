@@ -2,25 +2,23 @@
 import 'package:googleapis/sheets/v4.dart';
 import 'package:quiver/iterables.dart';
 
-import 'budget_configuration.dart';
+import 'package:home_budget/data/budget_sheet_config.dart';
 import 'entry.dart';
-import 'entry_metadata.dart';
 
 class EntriesReader {
 
-  final BudgetConfiguration budgetConfiguration;
+  final BudgetSheetConfig budgetSheetConfig;
 
-  EntriesReader(this.budgetConfiguration);
+  EntriesReader(this.budgetSheetConfig);
 
   List<Entry> readFromGridData(GridData gridData) {
-    final cellsMetadataList = budgetConfiguration.entryMetadata.cellsMetadata.values.toList();
     final entries = <Entry>[];
 
     for (var rowData in gridData.rowData) {
       final entryValues = <EntryValue>[];
-      for (var pair in zip([rowData.values, cellsMetadataList])) {
+      for (var pair in zip([rowData.values, budgetSheetConfig.columns])) {
         final cellData = pair[0] as CellData;
-        final cellMetadata = pair[1] as CellMetadata;
+        final cellMetadata = pair[1] as ColumnDescription;
 
         entryValues.add(_getEntryValue(cellData, cellMetadata));
       }
@@ -33,6 +31,6 @@ class EntriesReader {
     return entries;
   }
 
-  EntryValue _getEntryValue(CellData cellData, CellMetadata cellMetadata) =>
+  EntryValue _getEntryValue(CellData cellData, ColumnDescription cellMetadata) =>
     EntryValue(cellData.formattedValue, cellMetadata);
 }

@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:home_budget/model/budget_configuration.dart';
+import 'package:home_budget/data/budget_sheet_config.dart';
 
-import 'add_entry_page.dart';
-import 'budget_entries_list_page.dart';
+import 'budget_add_entry_screen.dart';
+import 'budget_entries_list_screen.dart';
 
-class MainPage extends StatefulWidget {
+class BudgetShowScreen extends StatefulWidget {
 
-  final BudgetConfiguration budgetConfiguration;
+  final BudgetSheetConfig budgetSheetConfig;
 
-  MainPage({Key key, this.budgetConfiguration}) : super(key: key);
+  BudgetShowScreen({Key key, this.budgetSheetConfig}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _MainState();
 }
 
-class _MainState extends State<MainPage> {
+class _MainState extends State<BudgetShowScreen> {
 
   int _selectedTabIndex = 0;
 
@@ -28,7 +28,7 @@ class _MainState extends State<MainPage> {
 
   _onSelectedAddEntry(BuildContext context) async {
     final appended = await Navigator.push(context,
-      MaterialPageRoute(builder: (context) => AddEntryPage(widget.budgetConfiguration))
+      MaterialPageRoute(builder: (context) => BudgetAddEntryScreen(widget.budgetSheetConfig))
     ) ?? false;
 
     if (appended) {
@@ -68,7 +68,7 @@ class _MainState extends State<MainPage> {
 
   Widget _selectedTabBody() {
     if (_selectedTabIndex == 0)
-      return BudgetEntriesListPage(key: _budgetEntriesKey, budgetConfiguration: widget.budgetConfiguration);
+      return BudgetEntriesListScreen(key: _budgetEntriesKey, budgetSheetConfig: widget.budgetSheetConfig);
     else if (_selectedTabIndex == 1)
       return null; // TODO Add budgets list
     else

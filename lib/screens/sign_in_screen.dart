@@ -1,25 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:home_budget/page/main.dart';
 
-class SignInPage extends StatefulWidget {
+import '../main.dart';
 
-  final VoidCallback onSignIn;
-
-  SignInPage({Key key, this.onSignIn}) : super(key: key);
+class SignInScreen extends StatefulWidget {
 
   @override
   _SignInState createState() => _SignInState();
 }
 
-class _SignInState extends State<SignInPage> {
+class _SignInState extends State<SignInScreen> {
 
   @override
   void initState() {
     super.initState();
     googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) {
       if (account != null) {
-        widget.onSignIn();
+        Navigator.pop(context, account);
       }
     });
   }

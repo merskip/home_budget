@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:googleapis/sheets/v4.dart' show SheetsApi, Sheet;
 import "package:collection/collection.dart";
-import 'package:home_budget/model/budget_configuration.dart';
-import 'package:home_budget/model/entries_reader.dart';
-import 'package:home_budget/model/entry.dart';
-
-import 'package:home_budget/page/main.dart';
-import 'package:home_budget/widget/budget_flexible_space_bar.dart';
+import 'package:home_budget/data/budget_sheet_config.dart';
+import 'package:home_budget/data/entries_reader.dart';
+import 'package:home_budget/data/entry.dart';
+import 'package:home_budget/widgets/budget_flexible_space_bar.dart';
 import 'package:intl/intl.dart';
 
-class BudgetEntriesListPage extends StatefulWidget {
+import '../main.dart';
 
-  final BudgetConfiguration budgetConfiguration;
+class BudgetEntriesListScreen extends StatefulWidget {
 
-  BudgetEntriesListPage({Key key, this.budgetConfiguration}) : super(key: key);
+  final BudgetSheetConfig budgetSheetConfig;
+
+  BudgetEntriesListScreen({Key key, this.budgetSheetConfig}) : super(key: key);
 
   @override
-  BudgetEntriesListState createState() => BudgetEntriesListState(budgetConfiguration);
+  BudgetEntriesListState createState() => BudgetEntriesListState(budgetSheetConfig);
 }
 
-class BudgetEntriesListState extends State<BudgetEntriesListPage> {
+class BudgetEntriesListState extends State<BudgetEntriesListScreen> {
 
-  BudgetConfiguration budgetConfiguration;
+  BudgetSheetConfig budgetConfiguration;
 
   Sheet sheet;
   List<Entry> entries;

@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:googleapis/drive/v3.dart';
-import 'package:home_budget/page/main.dart';
+
+import '../main.dart';
 
 class ChooseSpreadsheetPage extends StatefulWidget {
-
-  final Function(File) callback;
-
-  ChooseSpreadsheetPage(this.callback, {Key key}) : super(key: key);
 
   @override
   _ChooseSpreadsheetState createState() => _ChooseSpreadsheetState();
@@ -35,7 +32,7 @@ class _ChooseSpreadsheetState extends State<ChooseSpreadsheetPage> {
   }
 
   _onSelectedFile(File file) {
-    widget.callback(file);
+    Navigator.of(context).pop(file);
   }
 
   @override

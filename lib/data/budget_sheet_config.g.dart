@@ -1,23 +1,33 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'entry_metadata.dart';
+part of 'budget_sheet_config.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-EntryMetadata _$EntryMetadataFromJson(Map<String, dynamic> json) {
-  return EntryMetadata((json['cellsMetadata'] as Map<String, dynamic>)?.map(
-    (k, e) => MapEntry(
-        k, e == null ? null : CellMetadata.fromJson(e as Map<String, dynamic>)),
-  ));
+BudgetSheetConfig _$BudgetSheetConfigFromJson(Map<String, dynamic> json) {
+  return BudgetSheetConfig(
+      json['spreadsheetId'] as String,
+      json['dataSheetId'] as String,
+      json['dataRange'] as String,
+      (json['columns'] as List)
+          ?.map((e) => e == null
+              ? null
+              : ColumnDescription.fromJson(e as Map<String, dynamic>))
+          ?.toList());
 }
 
-Map<String, dynamic> _$EntryMetadataToJson(EntryMetadata instance) =>
-    <String, dynamic>{'cellsMetadata': instance.cellsMetadata};
+Map<String, dynamic> _$BudgetSheetConfigToJson(BudgetSheetConfig instance) =>
+    <String, dynamic>{
+      'spreadsheetId': instance.spreadsheetId,
+      'dataSheetId': instance.dataSheetId,
+      'dataRange': instance.dataRange,
+      'columns': instance.columns
+    };
 
-CellMetadata _$CellMetadataFromJson(Map<String, dynamic> json) {
-  return CellMetadata(
+ColumnDescription _$ColumnDescriptionFromJson(Map<String, dynamic> json) {
+  return ColumnDescription(
       json['title'] as String,
       _$enumDecodeNullable(_$DisplayTypeEnumMap, json['displayType']),
       _$enumDecodeNullable(_$ValueValidationEnumMap, json['valueValidation']),
@@ -25,7 +35,7 @@ CellMetadata _$CellMetadataFromJson(Map<String, dynamic> json) {
       (json['validationValues'] as List)?.map((e) => e as String)?.toList());
 }
 
-Map<String, dynamic> _$CellMetadataToJson(CellMetadata instance) =>
+Map<String, dynamic> _$ColumnDescriptionToJson(ColumnDescription instance) =>
     <String, dynamic>{
       'title': instance.title,
       'displayType': _$DisplayTypeEnumMap[instance.displayType],

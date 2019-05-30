@@ -1,5 +1,5 @@
-import 'entry_metadata.dart';
 import 'package:intl/intl.dart';
+import 'budget_sheet_config.dart';
 
 class Entry {
 
@@ -12,7 +12,7 @@ class Entry {
   DateTime get date {
     final entryValue = _findEntryValueOrNull(DisplayType.date);
     if (entryValue == null) return null;
-    return DateFormat(entryValue.metadata.dateFormat).parse(entryValue.value);
+    return DateFormat(entryValue.columnDescription.dateFormat).parse(entryValue.value);
   }
 
   String get amount => _findEntryValueOrNull(DisplayType.amount)?.value;
@@ -20,7 +20,7 @@ class Entry {
   String get category => _findEntryValueOrNull(DisplayType.category)?.value;
 
   EntryValue _findEntryValueOrNull(DisplayType displayType) =>
-    values.firstWhere((value) => value.metadata.displayType == displayType, orElse: () => null);
+    values.firstWhere((value) => value.columnDescription.displayType == displayType, orElse: () => null);
 
   bool isEmpty() =>
     values.first.value == null || values.first.value == "";
@@ -33,7 +33,7 @@ class Entry {
 class EntryValue {
 
   final String value;
-  final CellMetadata metadata;
+  final ColumnDescription columnDescription;
 
-  EntryValue(this.value, this.metadata);
+  EntryValue(this.value, this.columnDescription);
 }
