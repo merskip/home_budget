@@ -30,6 +30,7 @@ ColumnDescription _$ColumnDescriptionFromJson(Map<String, dynamic> json) {
   return ColumnDescription(
       json['title'] as String,
       _$enumDecodeNullable(_$DisplayTypeEnumMap, json['displayType']),
+      null,
       _$enumDecodeNullable(_$ValueValidationEnumMap, json['valueValidation']),
       json['dateFormat'] as String,
       (json['validationValues'] as List)?.map((e) => e as String)?.toList());

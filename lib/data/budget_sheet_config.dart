@@ -1,6 +1,8 @@
 import 'dart:core';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../util/a1_range.dart';
+
 part 'package:home_budget/data/budget_sheet_config.g.dart';
 
 @JsonSerializable()
@@ -23,11 +25,13 @@ class ColumnDescription {
 
   final String title;
   final DisplayType displayType;
+  final A1Range range;
   final ValueValidation valueValidation;
   final String dateFormat;
   final List<String> validationValues;
+  final String exampleValue;
 
-  ColumnDescription(this.title, this.displayType, this.valueValidation, this.dateFormat, this.validationValues);
+  ColumnDescription(this.title, this.displayType, this.range, this.valueValidation, this.dateFormat, this.validationValues, {this.exampleValue});
 
   factory ColumnDescription.fromJson(Map<String, dynamic> json) => _$ColumnDescriptionFromJson(json);
 
@@ -40,6 +44,26 @@ enum DisplayType {
   amount,
   date,
   category
+}
+
+class DisplayTypeHelper {
+
+  static String getTitle(DisplayType displayType) {
+    switch (displayType) {
+      case DisplayType.text:
+        return "Text";
+      case DisplayType.title:
+        return "Title";
+      case DisplayType.amount:
+        return "Amount";
+      case DisplayType.date:
+        return "Date";
+      case DisplayType.category:
+        return "Category";
+      default:
+        return "unknown";
+    }
+  }
 }
 
 enum ValueValidation {

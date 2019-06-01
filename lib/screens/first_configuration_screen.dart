@@ -9,6 +9,10 @@ import 'package:googleapis/sheets/v4.dart' show SheetsApi, Sheet;
 import '../main.dart';
 import 'choose_sheet_page.dart';
 import '../util/google_http_client.dart';
+import '../util/sheet_configuration_reader.dart';
+import '../data/budget_sheet_config.dart';
+import '../util/a1_range.dart';
+import 'entry_cell_configuration_page.dart';
 
 class FirstConfigurationScreen extends StatefulWidget {
 
@@ -60,6 +64,9 @@ class _FirstConfigurationState extends State<FirstConfigurationScreen> {
 
   _synchronizeDataBetweenSteps() {
     _enterDataRangeStepItem.spreadsheetFile = _chooseSpreadsheetStepItem.spreadsheetFile;
+    _configureSheetStepItem.spreadsheetFile = _chooseSpreadsheetStepItem.spreadsheetFile;
+    _configureSheetStepItem.selectedSheet = _enterDataRangeStepItem.selectedSheet;
+    _configureSheetStepItem.dataRange = A1Range.fromText(_enterDataRangeStepItem.dataRange);
   }
 
   @override
@@ -70,7 +77,6 @@ class _FirstConfigurationState extends State<FirstConfigurationScreen> {
       ),
       body: Container(
         child: Stepper(
-          physics: BouncingScrollPhysics(),
           currentStep: currentStepIndex,
           type: StepperType.vertical,
           steps: stepsItems.map(
@@ -218,6 +224,7 @@ class _EnterDataRangeStepItem extends _StepItem {
   Step buildStep(BuildContext context, bool isCurrent, bool isCompleted) =>
     Step(
       title: Text("Enter data range"),
+      subtitle: dataRange != null ? Text("Entered range: $dataRange") : null,
       content: StreamBuilder(
         stream: _sheets,
         builder: (context, AsyncSnapshot<List<Sheet>> snapshot) {
@@ -305,6 +312,7 @@ class _EnterDataRangeStepItem extends _StepItem {
   _onContinuePressed() {
     final form = _formKey.currentState;
     if (selectedSheet != null && form.validate()) {
+      form.save();
       finishStep();
     }
   }
@@ -312,17 +320,85 @@ class _EnterDataRangeStepItem extends _StepItem {
 
 class _ConfigureSheetStepItem extends _StepItem {
 
+  File spreadsheetFile;
+  Sheet selectedSheet;
+  A1Range dataRange;
+
+  Future<List<ColumnDescription>> columnsDescriptions;
+
+  @override
+  void onShow() {
+    final reader = SheetConfigurationReader(this.spreadsheetFile.id, selectedSheet);
+    columnsDescriptions = reader.read(dataRange: dataRange);
+  }
+
   @override
   Step buildStep(BuildContext context, bool isCurrent, bool isCompleted) =>
     Step(
-      title: Text("Configure sheet"),
-      content: SizedBox.shrink(),
+      title: Text("Configure columns"),
+      content: FutureBuilder(
+        future: columnsDescriptions,
+        builder: (context, AsyncSnapshot<List<ColumnDescription>> columnsDescriptionsSnapshot) {
+          final columnsDescriptions = columnsDescriptionsSnapshot.data;
+          if (columnsDescriptions == null)
+            return CircularProgressIndicator();
+          else
+            return _buildColumnsDescriptions(context, columnsDescriptions);
+        }),
       isActive: isCurrent || isCompleted,
       state: isCompleted ? StepState.complete : StepState.indexed,
     );
 
-  @override
-  void onShow() {
-    // TODO: implement onShow
+  Widget _buildColumnsDescriptions(BuildContext context, List<ColumnDescription> columnsDescriptions) =>
+    ListView.separated(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemCount: columnsDescriptions.length,
+      itemBuilder: (context, index) {
+        final columnDescription = columnsDescriptions[index];
+        return InkWell(
+          child: ListTile(
+            isThreeLine: true,
+            leading: Icon(_getIcon(columnDescription)),
+            title: Text(columnDescription.title),
+            subtitle: Text(["Column ${columnDescription.range}", _getDisplayedAsText(columnDescription), "Example: ${columnDescription.exampleValue}"].join("\n")),
+            trailing: Icon(Icons.edit),
+          ),
+          onTap: () async {
+            final updatedColumnDescription = await Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => EntryCellConfigurationPage(columnDescription)
+            )) as ColumnDescription;
+            print(updatedColumnDescription);
+          },
+        );
+      },
+      separatorBuilder: (context, index) => Divider(color: Colors.grey),
+    );
+
+  String _getDisplayedAsText(ColumnDescription columnDescription) {
+    final displayTypeTitle = DisplayTypeHelper.getTitle(columnDescription.displayType).toLowerCase();
+    if (columnDescription.valueValidation == ValueValidation.oneOfList)
+      return "Combo box with $displayTypeTitle";
+    else
+      return "Displayed as $displayTypeTitle";
+  }
+
+  IconData _getIcon(ColumnDescription columnDescription) {
+    if (columnDescription.valueValidation == ValueValidation.oneOfList)
+      return Icons.arrow_drop_down_circle;
+
+    switch (columnDescription.displayType) {
+      case DisplayType.title:
+        return Icons.title;
+      case DisplayType.amount:
+        return Icons.attach_money;
+      case DisplayType.date:
+        return Icons.date_range;
+      case DisplayType.category:
+        return Icons.category;
+      case DisplayType.text:
+      default:
+        return Icons.short_text;
+    }
   }
 }

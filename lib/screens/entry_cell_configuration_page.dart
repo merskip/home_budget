@@ -31,6 +31,7 @@ class EntryCellConfigurationState extends State<EntryCellConfigurationPage> {
     final newCellMetadata = ColumnDescription(
       _titleController.text,
       _selectedDisplayType,
+      widget.cellMetadata.range,
       widget.cellMetadata.valueValidation,
       _dateFormatController.text,
       widget.cellMetadata.validationValues

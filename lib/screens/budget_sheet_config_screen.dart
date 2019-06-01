@@ -78,7 +78,7 @@ class BudgetSheetConfigState extends State<BudgetSheetConfigScreen> with SingleT
     final valueValidation = validationValues != null ? ValueValidation.oneOfList : ValueValidation.none;
     final dateFormat = _getDateFormat(cellData);
 
-    return ColumnDescription("Column ${index + 1}", displayType, valueValidation, dateFormat, validationValues);
+    return ColumnDescription("Column ${index + 1}", displayType, null, valueValidation, dateFormat, validationValues);
   }
 
   DisplayType _getDisplayType(int index, CellData cellData) {
