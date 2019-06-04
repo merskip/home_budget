@@ -10,7 +10,7 @@ import 'package:home_budget/data/application_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../main.dart';
-import 'choose_sheet_page.dart';
+import 'choose_sheet_screen.dart';
 import '../util/google_http_client.dart';
 import '../util/sheet_configuration_reader.dart';
 import '../data/budget_sheet_config.dart';
@@ -215,7 +215,7 @@ class _ChooseSpreadsheetStepItem extends _StepItem {
   }
 
   _selectSpreadsheet(BuildContext context) async {
-    spreadsheetFile = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChooseSpreadsheetPage()));
+    spreadsheetFile = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChooseSpreadsheetScreen()));
     if (spreadsheetFile != null)
       finishStep();
   }

@@ -3,13 +3,13 @@ import 'package:googleapis/drive/v3.dart';
 
 import '../main.dart';
 
-class ChooseSpreadsheetPage extends StatefulWidget {
+class ChooseSpreadsheetScreen extends StatefulWidget {
 
   @override
   _ChooseSpreadsheetState createState() => _ChooseSpreadsheetState();
 }
 
-class _ChooseSpreadsheetState extends State<ChooseSpreadsheetPage> {
+class _ChooseSpreadsheetState extends State<ChooseSpreadsheetScreen> {
 
   FileList files;
 
