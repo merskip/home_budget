@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_auth_buttons/flutter_auth_buttons.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'package:googleapis/sheets/v4.dart' show SheetsApi, Sheet;
+import 'package:home_budget/data/application_config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../main.dart';
 import 'choose_sheet_page.dart';
@@ -12,9 +15,13 @@ import '../util/google_http_client.dart';
 import '../util/sheet_configuration_reader.dart';
 import '../data/budget_sheet_config.dart';
 import '../util/a1_range.dart';
-import 'entry_cell_configuration_page.dart';
+import 'column_configuration_screen.dart';
 
 class FirstConfigurationScreen extends StatefulWidget {
+
+  final VoidCallback onFinish;
+
+  FirstConfigurationScreen(this.onFinish);
 
   @override
   State<StatefulWidget> createState() => _FirstConfigurationState();
@@ -48,11 +55,16 @@ class _FirstConfigurationState extends State<FirstConfigurationScreen> {
   }
 
   _onFinishStep() {
-    _synchronizeDataBetweenSteps();
-    setState(() {
-      currentStepIndex++;
-      currentStepItem.onShow();
-    });
+    if (currentStepItem != stepsItems.last) {
+      _synchronizeDataBetweenSteps();
+      setState(() {
+        currentStepIndex++;
+        currentStepItem.onShow();
+      });
+    }
+    else {
+      _onFinishAll();
+    }
   }
 
   _onCancelStep() {
@@ -67,6 +79,22 @@ class _FirstConfigurationState extends State<FirstConfigurationScreen> {
     _configureSheetStepItem.spreadsheetFile = _chooseSpreadsheetStepItem.spreadsheetFile;
     _configureSheetStepItem.selectedSheet = _enterDataRangeStepItem.selectedSheet;
     _configureSheetStepItem.dataRange = A1Range.fromText(_enterDataRangeStepItem.dataRange);
+  }
+
+  _onFinishAll() async {
+    final columnsDescriptions = await _configureSheetStepItem.columnsDescriptions;
+    final budgetSheetConfig = BudgetSheetConfig(
+      _configureSheetStepItem.spreadsheetFile.id,
+      _configureSheetStepItem.selectedSheet.properties.sheetId.toString(),
+      _configureSheetStepItem.dataRange.toString(),
+      columnsDescriptions
+    );
+    final applicationConfig = ApplicationConfig([budgetSheetConfig], 0);
+
+    final preferences = await SharedPreferences.getInstance();
+    preferences.setString(prefsApplicationConfig, jsonEncode(applicationConfig.toJson()));
+
+    widget.onFinish();
   }
 
   @override
@@ -356,20 +384,29 @@ class _ConfigureSheetStepItem extends _StepItem {
       itemCount: columnsDescriptions.length,
       itemBuilder: (context, index) {
         final columnDescription = columnsDescriptions[index];
-        return InkWell(
-          child: ListTile(
-            isThreeLine: true,
-            leading: Icon(_getIcon(columnDescription)),
-            title: Text(columnDescription.title),
-            subtitle: Text(["Column ${columnDescription.range}", _getDisplayedAsText(columnDescription), "Example: ${columnDescription.exampleValue}"].join("\n")),
-            trailing: Icon(Icons.edit),
-          ),
-          onTap: () async {
-            final updatedColumnDescription = await Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => EntryCellConfigurationPage(columnDescription)
-            )) as ColumnDescription;
-            print(updatedColumnDescription);
-          },
+        return StatefulBuilder(builder: (builder, setState) =>
+          InkWell(
+            child: ListTile(
+              isThreeLine: true,
+              leading: Icon(DisplayTypeHelper.getIcon(columnDescription.displayType)),
+              title: Text(columnDescription.title),
+              subtitle: Text([
+                "Column ${columnDescription.range}",
+                _getDisplayedAsText(columnDescription),
+                "Example: ${columnDescription.exampleValue}"
+              ].join("\n")),
+              trailing: Icon(Icons.edit),
+            ),
+            onTap: () async {
+              final updatedColumnDescription = await Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => ColumnConfigurationScreen(columnDescription)
+              )) as ColumnDescription;
+              if (updatedColumnDescription != null)
+                setState(() {
+                  columnsDescriptions[index] = updatedColumnDescription;
+                });
+            },
+          )
         );
       },
       separatorBuilder: (context, index) => Divider(color: Colors.grey),
@@ -383,22 +420,13 @@ class _ConfigureSheetStepItem extends _StepItem {
       return "Displayed as $displayTypeTitle";
   }
 
-  IconData _getIcon(ColumnDescription columnDescription) {
-    if (columnDescription.valueValidation == ValueValidation.oneOfList)
-      return Icons.arrow_drop_down_circle;
+  @override
+  Widget continueWidget(BuildContext context) =>
+    RaisedButton(
+      child: Text("Finish"),
+      onPressed: () async {
+        finishStep();
+      }
+    );
 
-    switch (columnDescription.displayType) {
-      case DisplayType.title:
-        return Icons.title;
-      case DisplayType.amount:
-        return Icons.attach_money;
-      case DisplayType.date:
-        return Icons.date_range;
-      case DisplayType.category:
-        return Icons.category;
-      case DisplayType.text:
-      default:
-        return Icons.short_text;
-    }
-  }
 }

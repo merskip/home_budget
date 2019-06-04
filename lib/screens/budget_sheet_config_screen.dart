@@ -4,7 +4,7 @@ import 'package:googleapis/sheets/v4.dart' show SheetsApi, Spreadsheet, Sheet, C
 import 'package:home_budget/data/budget_sheet_config.dart';
 import 'package:home_budget/main.dart';
 
-import 'entry_cell_configuration_page.dart';
+import 'column_configuration_screen.dart';
 
 class BudgetSheetConfigScreen extends StatefulWidget {
 
@@ -265,7 +265,7 @@ class BudgetSheetConfigState extends State<BudgetSheetConfigScreen> with SingleT
       subtitle: Text(_getDisplayTypeText(cellMetadata.displayType)),
       onTap: () async {
         final newCellMetadata = await Navigator.push(context,
-          MaterialPageRoute(builder: (context) => EntryCellConfigurationPage(cellMetadata))
+          MaterialPageRoute(builder: (context) => ColumnConfigurationScreen(cellMetadata))
         );
         if (newCellMetadata != null) {
           setState(() {

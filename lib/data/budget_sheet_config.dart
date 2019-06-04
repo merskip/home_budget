@@ -1,4 +1,5 @@
 import 'dart:core';
+import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../util/a1_range.dart';
@@ -62,6 +63,22 @@ class DisplayTypeHelper {
         return "Category";
       default:
         return "unknown";
+    }
+  }
+
+  static IconData getIcon(DisplayType displayType) {
+    switch (displayType) {
+      case DisplayType.title:
+        return Icons.title;
+      case DisplayType.amount:
+        return Icons.attach_money;
+      case DisplayType.date:
+        return Icons.date_range;
+      case DisplayType.category:
+        return Icons.category;
+      case DisplayType.text:
+      default:
+        return Icons.short_text;
     }
   }
 }

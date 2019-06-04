@@ -48,42 +48,12 @@ class AppState extends State<AppWidget> {
   }
 
   _startupApplication() async {
-//    final account = await _fetchGoogleAccount(context);
-//    final applicationConfig = await _fetchApplicationConfig(context);
-
     final applicationConfig = await _readApplicationConfigFromPreferencesOrNull();
 
     setState(() {
       this.applicationConfig = applicationConfig;
       this.loading = false;
     });
-  }
-
-  Future<GoogleSignInAccount> _fetchGoogleAccount(BuildContext context) async {
-    final account = await googleSignIn.signInSilently() ?? await _showSignInScreen();
-    httpHeaders = await googleSignIn.currentUser.authHeaders;
-    httpClient = GoogleHttpClient(httpHeaders);
-    return account;
-  }
-
-  Future<GoogleSignInAccount> _showSignInScreen() {
-    setState(() => showSignIn = true);
-    return googleSignIn.onCurrentUserChanged.firstWhere((account) => account != null);
-  }
-
-  Future<ApplicationConfig> _fetchApplicationConfig(BuildContext context) async {
-    var applicationConfig = await _readApplicationConfigFromPreferencesOrNull();
-    if (applicationConfig != null && applicationConfig.budgetSheetsConfigs.isEmpty)
-      applicationConfig = null;
-
-    if (applicationConfig == null) {
-      final budgetScreenConfig = await Navigator.pushReplacement(context,
-        MaterialPageRoute(builder: (context) => BudgetSheetConfigScreen())
-      ) as BudgetSheetConfig;
-
-      applicationConfig = ApplicationConfig([budgetScreenConfig], 0);
-    }
-    return applicationConfig;
   }
 
   Future<ApplicationConfig> _readApplicationConfigFromPreferencesOrNull() async {
@@ -115,7 +85,9 @@ class AppState extends State<AppWidget> {
         if (loading)
           _loadingScreen();
         else if (applicationConfig == null)
-          return FirstConfigurationScreen();
+          return FirstConfigurationScreen(() {
+            _startupApplication();
+          });
         else
           return _budgetShowScreen(applicationConfig);
 
@@ -127,9 +99,6 @@ class AppState extends State<AppWidget> {
     Scaffold(
       body: Center(child: CircularProgressIndicator())
     );
-
-  Widget _signInScreen() =>
-    SignInScreen();
 
   Widget _budgetShowScreen(ApplicationConfig applicationConfig) =>
     BudgetShowScreen(budgetSheetConfig: applicationConfig.defaultBudgetSheetConfig);
