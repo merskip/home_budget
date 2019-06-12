@@ -1,7 +1,11 @@
 import 'dart:math';
 
 import 'package:googleapis/sheets/v4.dart';
+import 'package:json_annotation/json_annotation.dart';
 
+part 'a1_range.g.dart';
+
+@JsonSerializable()
 class A1Range {
 
   static final _a1Regex = RegExp(
@@ -39,6 +43,10 @@ class A1Range {
       endRowIndex: _parseIndexOrNull(match[5]),
     );
   }
+
+  factory A1Range.fromJson(Map<String, dynamic> json) => _$A1RangeFromJson(json);
+
+  Map<String, dynamic> toJson() => _$A1RangeToJson(this);
 
   static bool isValid(String a1notation) => _a1Regex.hasMatch(a1notation);
 

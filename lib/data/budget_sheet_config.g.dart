@@ -34,19 +34,24 @@ ColumnDescription _$ColumnDescriptionFromJson(Map<String, dynamic> json) {
   return ColumnDescription(
       json['title'] as String,
       _$enumDecodeNullable(_$DisplayTypeEnumMap, json['displayType']),
-      null,
+      json['range'] == null
+          ? null
+          : A1Range.fromJson(json['range'] as Map<String, dynamic>),
       _$enumDecodeNullable(_$ValueValidationEnumMap, json['valueValidation']),
       json['dateFormat'] as String,
-      (json['validationValues'] as List)?.map((e) => e as String)?.toList());
+      (json['validationValues'] as List)?.map((e) => e as String)?.toList(),
+      exampleValue: json['exampleValue'] as String);
 }
 
 Map<String, dynamic> _$ColumnDescriptionToJson(ColumnDescription instance) =>
     <String, dynamic>{
       'title': instance.title,
       'displayType': _$DisplayTypeEnumMap[instance.displayType],
+      'range': instance.range,
       'valueValidation': _$ValueValidationEnumMap[instance.valueValidation],
       'dateFormat': instance.dateFormat,
-      'validationValues': instance.validationValues
+      'validationValues': instance.validationValues,
+      'exampleValue': instance.exampleValue
     };
 
 T _$enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {

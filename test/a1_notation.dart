@@ -1,5 +1,5 @@
 
-import 'package:home_budget/util/a1_range.dart';
+import 'package:home_budget/data/a1_range.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

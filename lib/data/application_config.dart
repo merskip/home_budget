@@ -31,6 +31,11 @@ class ApplicationConfig {
     return null;
   }
 
+  saveToPreferences() async {
+    final preferences = await SharedPreferences.getInstance();
+    preferences.setString(prefsApplicationConfig, jsonEncode(toJson()));
+  }
+
   factory ApplicationConfig.fromJson(Map<String, dynamic> json) => _$ApplicationConfigFromJson(json);
 
   Map<String, dynamic> toJson() => _$ApplicationConfigToJson(this);

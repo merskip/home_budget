@@ -6,6 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_auth_buttons/flutter_auth_buttons.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'package:googleapis/sheets/v4.dart' show SheetsApi, Sheet;
+import 'package:home_budget/widgets/column_description_list_tile.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,7 +15,7 @@ import 'choose_sheet_screen.dart';
 import '../util/google_http_client.dart';
 import '../util/sheet_configuration_reader.dart';
 import '../data/budget_sheet_config.dart';
-import '../util/a1_range.dart';
+import 'package:home_budget/data/a1_range.dart';
 import '../data/application_config.dart';
 import 'column_configuration_screen.dart';
 
@@ -93,9 +94,7 @@ class _FirstConfigurationState extends State<FirstConfigurationScreen> {
       columnsDescriptions
     );
     final applicationConfig = ApplicationConfig([budgetSheetConfig], 0);
-
-    final preferences = await SharedPreferences.getInstance();
-    preferences.setString(prefsApplicationConfig, jsonEncode(applicationConfig.toJson()));
+    applicationConfig.saveToPreferences();
 
     widget.onFinish();
   }
@@ -389,39 +388,26 @@ class _ConfigureSheetStepItem extends _StepItem {
         final columnDescription = columnsDescriptions[index];
         return StatefulBuilder(builder: (builder, setState) =>
           InkWell(
-            child: ListTile(
-              isThreeLine: true,
-              leading: Icon(DisplayTypeHelper.getIcon(columnDescription.displayType)),
-              title: Text(columnDescription.title),
-              subtitle: Text([
-                "Column ${columnDescription.range}",
-                _getDisplayedAsText(columnDescription),
-                "Example: ${columnDescription.exampleValue}"
-              ].join("\n")),
-              trailing: Icon(Icons.edit),
+            child: ColumnDescriptionListTile(
+              columnDescription: columnDescription,
+              trailing: Icon(Icons.edit)
             ),
             onTap: () async {
               final updatedColumnDescription = await Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) => ColumnConfigurationScreen(columnDescription)
               )) as ColumnDescription;
-              if (updatedColumnDescription != null)
+
+              if (updatedColumnDescription != null) {
                 setState(() {
                   columnsDescriptions[index] = updatedColumnDescription;
                 });
+              }
             },
           )
         );
       },
       separatorBuilder: (context, index) => Divider(color: Colors.grey),
     );
-
-  String _getDisplayedAsText(ColumnDescription columnDescription) {
-    final displayTypeTitle = DisplayTypeHelper.getTitle(columnDescription.displayType).toLowerCase();
-    if (columnDescription.valueValidation == ValueValidation.oneOfList)
-      return "Combo box with $displayTypeTitle";
-    else
-      return "Displayed as $displayTypeTitle";
-  }
 
   @override
   Widget continueWidget(BuildContext context) =>

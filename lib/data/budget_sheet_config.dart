@@ -2,9 +2,9 @@ import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../util/a1_range.dart';
+import 'package:home_budget/data/a1_range.dart';
 
-part 'package:home_budget/data/budget_sheet_config.g.dart';
+part 'budget_sheet_config.g.dart';
 
 @JsonSerializable()
 class BudgetSheetConfig {

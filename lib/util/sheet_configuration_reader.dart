@@ -2,7 +2,7 @@
 import 'package:googleapis/sheets/v4.dart';
 
 import '../main.dart';
-import 'a1_range.dart';
+import 'package:home_budget/data/a1_range.dart';
 import '../data/budget_sheet_config.dart';
 
 class SheetConfigurationReader {

@@ -49,21 +49,23 @@ class _ColumnConfigurationState extends State<ColumnConfigurationScreen> {
           onPressed: () => _onBackPressed(context),
         )
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            SizedBox(height: 8),
-            _titleControl(),
-            SizedBox(height: 8),
-            _displayTypeControl(),
-            SizedBox(height: 8),
-            if (_displayType == DisplayType.date) _dateFormatControl(),
-            SizedBox(height: 8),
-            _valueValidationPreview()
-          ]
-        )
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              SizedBox(height: 8),
+              _titleControl(),
+              SizedBox(height: 8),
+              _displayTypeControl(),
+              SizedBox(height: 8),
+              if (_displayType == DisplayType.date) _dateFormatControl(),
+              SizedBox(height: 8),
+              _valueValidationPreview()
+            ]
+          )
+        ),
       )
     );
 
