@@ -3,9 +3,9 @@ import 'package:home_budget/data/budget_sheet_config.dart';
 
 import 'budget_add_entry_screen.dart';
 import 'budget_entries_list_screen.dart';
+import 'budgets_list_screen.dart';
 
 class BudgetShowScreen extends StatefulWidget {
-
   final BudgetSheetConfig budgetSheetConfig;
 
   BudgetShowScreen({Key key, this.budgetSheetConfig}) : super(key: key);
@@ -15,7 +15,6 @@ class BudgetShowScreen extends StatefulWidget {
 }
 
 class _MainState extends State<BudgetShowScreen> {
-
   int _selectedTabIndex = 0;
 
   final _budgetEntriesKey = GlobalKey<BudgetEntriesListState>();
@@ -27,11 +26,12 @@ class _MainState extends State<BudgetShowScreen> {
   }
 
   _onSelectedAddEntry(BuildContext context) async {
-    final appended = await Navigator.push(context,
-      MaterialPageRoute(builder: (context) => BudgetAddEntryScreen(widget.budgetSheetConfig))
-    ) ?? false;
+    final addEntryRoute = MaterialPageRoute(builder:
+      (context) => BudgetAddEntryScreen(widget.budgetSheetConfig)
+    );
+    final appendedEntry = await Navigator.push(context, addEntryRoute) ?? false;
 
-    if (appended) {
+    if (appendedEntry) {
       _budgetEntriesKey.currentState.refreshBudget();
     }
   }
@@ -47,12 +47,14 @@ class _MainState extends State<BudgetShowScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             _BottomAppBarButton(
-              icon: Icons.home, title: "Home",
+              icon: Icons.home,
+              title: "Home",
               isSelected: _selectedTabIndex == 0,
               onPressed: () => _updateSelectedTab(0),
             ),
             _BottomAppBarButton(
-              icon: Icons.multiline_chart, title: "Raport",
+              icon: Icons.storage,
+              title: "Budgets",
               isSelected: _selectedTabIndex == 1,
               onPressed: () => _updateSelectedTab(1),
             ),
@@ -63,27 +65,30 @@ class _MainState extends State<BudgetShowScreen> {
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () => _onSelectedAddEntry(context),
-      )
+      ),
     );
 
   Widget _selectedTabBody() {
     if (_selectedTabIndex == 0)
-      return BudgetEntriesListScreen(key: _budgetEntriesKey, budgetSheetConfig: widget.budgetSheetConfig);
+      return BudgetEntriesListScreen(
+        key: _budgetEntriesKey,
+        budgetSheetConfig: widget.budgetSheetConfig
+      );
     else if (_selectedTabIndex == 1)
-      return null; // TODO Add budgets list
+      return BudgetListScreen();
     else
       return null;
   }
 }
 
 class _BottomAppBarButton extends StatelessWidget {
-
   final IconData icon;
   final String title;
   final bool isSelected;
   final VoidCallback onPressed;
 
-  _BottomAppBarButton({Key key, this.icon, this.title, this.isSelected, this.onPressed}) : super(key: key);
+  _BottomAppBarButton({Key key, this.icon, this.title, this.isSelected, this.onPressed})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -102,9 +107,9 @@ class _BottomAppBarButton extends StatelessWidget {
               Icon(icon, color: color),
               Text(title, style: TextStyle(color: color, fontSize: 12))
             ],
-          )
-        )
-      )
+          ),
+        ),
+      ),
     );
   }
 }
