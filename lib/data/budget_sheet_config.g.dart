@@ -8,6 +8,8 @@ part of 'budget_sheet_config.dart';
 
 BudgetSheetConfig _$BudgetSheetConfigFromJson(Map<String, dynamic> json) {
   return BudgetSheetConfig(
+      json['spreadsheetTitle'] as String,
+      json['dataSheetTitle'] as String,
       json['spreadsheetId'] as String,
       json['dataSheetId'] as String,
       json['dataRange'] as String,
@@ -20,6 +22,8 @@ BudgetSheetConfig _$BudgetSheetConfigFromJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> _$BudgetSheetConfigToJson(BudgetSheetConfig instance) =>
     <String, dynamic>{
+      'spreadsheetTitle': instance.spreadsheetTitle,
+      'dataSheetTitle': instance.dataSheetTitle,
       'spreadsheetId': instance.spreadsheetId,
       'dataSheetId': instance.dataSheetId,
       'dataRange': instance.dataRange,

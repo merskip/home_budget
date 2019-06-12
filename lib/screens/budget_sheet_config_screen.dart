@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:googleapis/drive/v3.dart';
 import 'package:googleapis/sheets/v4.dart' show SheetsApi, Spreadsheet, Sheet, CellData;
 import 'package:home_budget/data/budget_sheet_config.dart';
 import 'package:home_budget/main.dart';
@@ -119,6 +118,8 @@ class BudgetSheetConfigState extends State<BudgetSheetConfigScreen> with SingleT
 
   _onConfirmationConfiguration(BuildContext context) async {
     final budgetConfiguration = BudgetSheetConfig(
+      spreadsheet.properties.title,
+      selectedSheet.properties.title,
       spreadsheet.spreadsheetId,
       selectedSheet.properties.sheetId.toString(),
       enteredDataRange,

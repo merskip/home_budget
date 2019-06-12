@@ -1,7 +1,12 @@
 
-import 'package:json_annotation/json_annotation.dart';
+import 'dart:convert';
 
-import 'package:home_budget/data/budget_sheet_config.dart';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../data/budget_sheet_config.dart';
+import '../main.dart';
+
 part 'application_config.g.dart';
 
 @JsonSerializable()
@@ -13,6 +18,18 @@ class ApplicationConfig {
   BudgetSheetConfig get defaultBudgetSheetConfig => budgetSheetsConfigs[defaultConfigIndex];
 
   ApplicationConfig(this.budgetSheetsConfigs, this.defaultConfigIndex);
+
+  static Future<ApplicationConfig> readFromPreferences() async {
+    final preferences = await SharedPreferences.getInstance();
+    try {
+      final json = preferences.getString(prefsApplicationConfig);
+      if (json != null) return ApplicationConfig.fromJson(jsonDecode(json));
+    } catch (e) {
+      print(e);
+      preferences.remove(prefsApplicationConfig);
+    }
+    return null;
+  }
 
   factory ApplicationConfig.fromJson(Map<String, dynamic> json) => _$ApplicationConfigFromJson(json);
 

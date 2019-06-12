@@ -1,10 +1,8 @@
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'package:googleapis/sheets/v4.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data/application_config.dart';
 import 'screens/budget_show_screen.dart';
@@ -24,11 +22,13 @@ GoogleHttpClient httpClient;
 void main() => runApp(AppWidget());
 
 class AppWidget extends StatefulWidget {
+
   @override
   State<StatefulWidget> createState() => AppState();
 }
 
 class AppState extends State<AppWidget> {
+
   var loading = true;
   ApplicationConfig applicationConfig;
   GoogleSignInAccount account;
@@ -40,7 +40,7 @@ class AppState extends State<AppWidget> {
   }
 
   _startupApplication() async {
-    this.applicationConfig = await _readApplicationConfigFromPreferencesOrNull();
+    this.applicationConfig = await ApplicationConfig.readFromPreferences();
 
     if (applicationConfig != null) {
       this.account = await _trySignInSilently();
@@ -67,18 +67,6 @@ class AppState extends State<AppWidget> {
       print(e.toString());
       return null;
     }
-  }
-
-  Future<ApplicationConfig> _readApplicationConfigFromPreferencesOrNull() async {
-    final preferences = await SharedPreferences.getInstance();
-    try {
-      final json = preferences.getString(prefsApplicationConfig);
-      if (json != null) return ApplicationConfig.fromJson(jsonDecode(json));
-    } catch (e) {
-      print(e);
-      preferences.remove(prefsApplicationConfig);
-    }
-    return null;
   }
 
   @override
@@ -108,6 +96,5 @@ class AppState extends State<AppWidget> {
     Scaffold(body: Center(child: CircularProgressIndicator()));
 
   Widget _budgetShowScreen(ApplicationConfig applicationConfig) =>
-    BudgetShowScreen(
-      budgetSheetConfig: applicationConfig.defaultBudgetSheetConfig);
+    BudgetShowScreen(budgetSheetConfig: applicationConfig.defaultBudgetSheetConfig);
 }

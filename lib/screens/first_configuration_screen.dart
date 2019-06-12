@@ -6,7 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_auth_buttons/flutter_auth_buttons.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'package:googleapis/sheets/v4.dart' show SheetsApi, Sheet;
-import 'package:home_budget/data/application_config.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../main.dart';
@@ -15,6 +15,7 @@ import '../util/google_http_client.dart';
 import '../util/sheet_configuration_reader.dart';
 import '../data/budget_sheet_config.dart';
 import '../util/a1_range.dart';
+import '../data/application_config.dart';
 import 'column_configuration_screen.dart';
 
 class FirstConfigurationScreen extends StatefulWidget {
@@ -84,6 +85,8 @@ class _FirstConfigurationState extends State<FirstConfigurationScreen> {
   _onFinishAll() async {
     final columnsDescriptions = await _configureSheetStepItem.columnsDescriptions;
     final budgetSheetConfig = BudgetSheetConfig(
+      _configureSheetStepItem.spreadsheetFile.name,
+      _configureSheetStepItem.selectedSheet.properties.title,
       _configureSheetStepItem.spreadsheetFile.id,
       _configureSheetStepItem.selectedSheet.properties.sheetId.toString(),
       _configureSheetStepItem.dataRange.toString(),

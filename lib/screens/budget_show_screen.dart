@@ -6,6 +6,7 @@ import 'budget_entries_list_screen.dart';
 import 'budgets_list_screen.dart';
 
 class BudgetShowScreen extends StatefulWidget {
+
   final BudgetSheetConfig budgetSheetConfig;
 
   BudgetShowScreen({Key key, this.budgetSheetConfig}) : super(key: key);
