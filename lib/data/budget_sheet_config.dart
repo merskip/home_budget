@@ -9,13 +9,16 @@ part 'budget_sheet_config.g.dart';
 @JsonSerializable()
 class BudgetSheetConfig {
 
-  final String spreadsheetTitle;
-  final String dataSheetTitle;
+  String spreadsheetTitle;
+  String dataSheetTitle;
 
-  final String spreadsheetId;
-  final String dataSheetId;
-  final String dataRange;
-  final List<ColumnDescription> columns;
+  String spreadsheetId;
+  String dataSheetId;
+  String dataRange;
+  List<ColumnDescription> columns;
+
+  String headerTitle;
+  String headerDataRange;
 
   BudgetSheetConfig(this.spreadsheetTitle, this.dataSheetTitle,
                     this.spreadsheetId, this.dataSheetId,
@@ -29,13 +32,13 @@ class BudgetSheetConfig {
 @JsonSerializable()
 class ColumnDescription {
 
-  final String title;
-  final DisplayType displayType;
-  final A1Range range;
-  final ValueValidation valueValidation;
-  final String dateFormat;
-  final List<String> validationValues;
-  final String exampleValue;
+  String title;
+  DisplayType displayType;
+  A1Range range;
+  ValueValidation valueValidation;
+  String dateFormat;
+  List<String> validationValues;
+  String exampleValue;
 
   ColumnDescription(this.title, this.displayType, this.range, this.valueValidation, this.dateFormat, this.validationValues, {this.exampleValue});
 

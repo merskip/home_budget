@@ -35,7 +35,6 @@ class _BudgetConfigEditState extends State<BudgetConfigEditScreen> {
   _updateColumn(ColumnDescription column) async {
     final index = widget.budgetSheetConfig.columns.indexWhere((c) => c.range == column.range);
     if (index != -1) {
-
       setState(() {
         budgetSheetConfig.columns[index] = column;
         widget.applicationConfig.saveToPreferences();
@@ -43,10 +42,29 @@ class _BudgetConfigEditState extends State<BudgetConfigEditScreen> {
     }
   }
 
+  _onSelectedBudgetSettings(BuildContext context) async {
+    final settingsScreen = BudgetSheetSettingsScreen(applicationConfig: widget.applicationConfig, budgetSheetConfig: widget.budgetSheetConfig);
+    await Navigator.of(context).push(MaterialPageRoute(builder: (context) => settingsScreen));
+    widget.applicationConfig.saveToPreferences();
+  }
+
   @override
   Widget build(BuildContext context) =>
     Scaffold(
-      appBar: AppBar(title: Text("${widget.budgetSheetConfig.spreadsheetTitle} - ${widget.budgetSheetConfig.dataSheetTitle}")),
+      appBar: AppBar(
+        title: Text("${widget.budgetSheetConfig.spreadsheetTitle} - ${widget.budgetSheetConfig.dataSheetTitle}"),
+        actions: <Widget>[
+          if (widget.applicationConfig.defaultBudgetSheetConfig != budgetSheetConfig) IconButton(
+            icon: Icon(Icons.home),
+            tooltip: "Set as default",
+            onPressed: () => throw UnimplementedError("TODO"),
+          ),
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () => _onSelectedBudgetSettings(context)
+          )
+        ],
+      ),
       body: ListView.builder(
         itemCount: widget.budgetSheetConfig.columns.length,
         itemBuilder: (context, index) {
@@ -61,6 +79,55 @@ class _BudgetConfigEditState extends State<BudgetConfigEditScreen> {
             onTap: () => _onSelectedColumn(column),
           );
         }
+      )
+    );
+
+}
+
+class BudgetSheetSettingsScreen extends StatefulWidget {
+
+  final ApplicationConfig applicationConfig;
+  final BudgetSheetConfig budgetSheetConfig;
+
+  const BudgetSheetSettingsScreen({Key key, this.applicationConfig, this.budgetSheetConfig}) : super(key: key);
+
+  @override
+  _BudgetSheetSettingsScreenState createState() => _BudgetSheetSettingsScreenState();
+}
+
+class _BudgetSheetSettingsScreenState extends State<BudgetSheetSettingsScreen> {
+
+  @override
+  Widget build(BuildContext context) =>
+    Scaffold(
+      appBar: AppBar(
+        title: Text("Settings"),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            TextField(
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: "Header title"
+              ),
+              controller: TextEditingController(text: widget.budgetSheetConfig.headerTitle),
+              onChanged: (newValue) => widget.budgetSheetConfig.headerTitle = newValue,
+            ),
+            Padding(padding: EdgeInsets.only(top: 16)),
+            TextField(
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: "Header data",
+                helperText: "Enter cell reference in A1 notation"
+              ),
+              controller: TextEditingController(text: widget.budgetSheetConfig.headerDataRange),
+              onChanged: (newValue) => widget.budgetSheetConfig.headerDataRange = newValue,
+            )
+          ],
+        )
       )
     );
 }

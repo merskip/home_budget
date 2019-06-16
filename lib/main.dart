@@ -87,7 +87,7 @@ class AppState extends State<AppWidget> {
           else if (applicationConfig == null)
             return FirstConfigurationScreen(() => _startupApplication());
           else
-            return _budgetShowScreen(applicationConfig);
+            return _budgetShowScreen();
         },
       ),
     );
@@ -95,6 +95,5 @@ class AppState extends State<AppWidget> {
   Widget _loadingScreen() =>
     Scaffold(body: Center(child: CircularProgressIndicator()));
 
-  Widget _budgetShowScreen(ApplicationConfig applicationConfig) =>
-    BudgetShowScreen(budgetSheetConfig: applicationConfig.defaultBudgetSheetConfig);
+  Widget _budgetShowScreen() => BudgetShowScreen();
 }

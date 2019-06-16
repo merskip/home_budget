@@ -21,18 +21,18 @@ class BudgetEntriesListScreen extends StatefulWidget {
 
 class BudgetEntriesListState extends State<BudgetEntriesListScreen> {
 
-  BudgetSheetConfig budgetConfiguration;
+  BudgetSheetConfig budgetConfig;
 
   Sheet sheet;
   List<Entry> entries;
   List<ListItem> listItems;
+  String headerValue;
 
-  BudgetEntriesListState(this.budgetConfiguration);
+  BudgetEntriesListState(this.budgetConfig);
 
   @override
   void initState() {
     super.initState();
-
     _fetchBudget();
   }
 
@@ -43,29 +43,42 @@ class BudgetEntriesListState extends State<BudgetEntriesListScreen> {
   }
 
   _fetchBudget() async {
-    final dataRangeFirstPage = budgetConfiguration.dataRange + "100";
-    final spreadsheet = await SheetsApi(httpClient).spreadsheets.get(budgetConfiguration.spreadsheetId, ranges: [dataRangeFirstPage], includeGridData: true);
-    final sheet = spreadsheet.sheets.first;
-    final gridData = sheet.data.first; // Just get first interesting grid data, no should be more data
-
-    final entriesReader = EntriesReader(budgetConfiguration);
-    final entries = entriesReader
-      .readFromGridData(gridData)
-      .reversed
-      .toList();
-    final entriesGroupedByDate = groupBy(entries, (Entry entry) => entry.date ?? DateTime.now());
-
+    final entriesGroupedByDate = await _fetchEntries();
     final listItems = <ListItem>[];
     entriesGroupedByDate.forEach((dateTime, entries) {
       listItems.add(DateHeaderItem(dateTime));
       listItems.addAll(entries.map((entry) => EntryItem(entry)));
     });
 
+    final headerValue = await _fetchHeaderValue();
+
     setState(() {
       this.sheet = sheet;
       this.entries = entries;
       this.listItems = listItems;
+      this.headerValue = headerValue;
     });
+  }
+
+  Future<Map<DateTime, List<Entry>>> _fetchEntries() async {
+    final dataRangeFirstPage = budgetConfig.dataRange + "100";
+    final spreadsheet = await SheetsApi(httpClient).spreadsheets.get(budgetConfig.spreadsheetId, ranges: [dataRangeFirstPage], includeGridData: true);
+    final sheet = spreadsheet.sheets.first;
+    final gridData = sheet.data.first; // Just get first interesting grid data, no should be more data
+
+    final entriesReader = EntriesReader(budgetConfig);
+    final entries = entriesReader
+      .readFromGridData(gridData)
+      .reversed
+      .toList();
+    final entriesGroupedByDate = groupBy(entries, (Entry entry) => entry.date ?? DateTime.now());
+    return entriesGroupedByDate;
+  }
+
+  Future<String> _fetchHeaderValue() async {
+    if (budgetConfig.headerDataRange?.isEmpty ?? true) return null;
+    final result = await SheetsApi(httpClient).spreadsheets.values.get(budgetConfig.spreadsheetId, budgetConfig.headerDataRange);
+    return result.values.first.first;
   }
 
   @override
@@ -78,12 +91,14 @@ class BudgetEntriesListState extends State<BudgetEntriesListScreen> {
     CustomScrollView(
       physics: BouncingScrollPhysics(),
       slivers: <Widget>[
-        SliverAppBar(
-          expandedHeight: 128,
+        headerValue != null ? SliverAppBar(
+          expandedHeight: 96,
           flexibleSpace: BudgetFlexibleSpaceBar(
             subtitle: Text("Forecast budget"),
-            title: Text("TODO"),
-          )
+            title: Text(headerValue),
+          ))
+          : SliverAppBar(
+          title: Text(budgetConfig.spreadsheetTitle + " - " + budgetConfig.dataSheetTitle),
         ),
         SliverPadding(
           padding: EdgeInsets.only(bottom: 36),

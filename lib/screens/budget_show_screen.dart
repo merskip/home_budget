@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_budget/data/application_config.dart';
 import 'package:home_budget/data/budget_sheet_config.dart';
 
 import 'budget_add_entry_screen.dart';
@@ -6,10 +7,6 @@ import 'budget_entries_list_screen.dart';
 import 'budgets_list_screen.dart';
 
 class BudgetShowScreen extends StatefulWidget {
-
-  final BudgetSheetConfig budgetSheetConfig;
-
-  BudgetShowScreen({Key key, this.budgetSheetConfig}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _MainState();
@@ -27,11 +24,9 @@ class _MainState extends State<BudgetShowScreen> {
   }
 
   _onSelectedAddEntry(BuildContext context) async {
-    final addEntryRoute = MaterialPageRoute(builder:
-      (context) => BudgetAddEntryScreen(widget.budgetSheetConfig)
-    );
+    final preferences = await ApplicationConfig.readFromPreferences();
+    final addEntryRoute = MaterialPageRoute(builder: (context) => BudgetAddEntryScreen(preferences.defaultBudgetSheetConfig));
     final appendedEntry = await Navigator.push(context, addEntryRoute) ?? false;
-
     if (appendedEntry) {
       _budgetEntriesKey.currentState.refreshBudget();
     }
@@ -71,9 +66,13 @@ class _MainState extends State<BudgetShowScreen> {
 
   Widget _selectedTabBody() {
     if (_selectedTabIndex == 0)
-      return BudgetEntriesListScreen(
-        key: _budgetEntriesKey,
-        budgetSheetConfig: widget.budgetSheetConfig
+      return FutureBuilder(
+        future: ApplicationConfig.readFromPreferences(),
+        builder: (context, AsyncSnapshot<ApplicationConfig> snapshot) {
+          final applicationConfig = snapshot.data;
+          if (applicationConfig == null) return Container();
+          return BudgetEntriesListScreen(key: _budgetEntriesKey, budgetSheetConfig: applicationConfig.defaultBudgetSheetConfig);
+        }
       );
     else if (_selectedTabIndex == 1)
       return BudgetListScreen();

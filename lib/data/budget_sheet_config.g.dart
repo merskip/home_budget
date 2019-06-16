@@ -17,7 +17,9 @@ BudgetSheetConfig _$BudgetSheetConfigFromJson(Map<String, dynamic> json) {
           ?.map((e) => e == null
               ? null
               : ColumnDescription.fromJson(e as Map<String, dynamic>))
-          ?.toList());
+          ?.toList())
+    ..headerTitle = json['headerTitle'] as String
+    ..headerDataRange = json['headerDataRange'] as String;
 }
 
 Map<String, dynamic> _$BudgetSheetConfigToJson(BudgetSheetConfig instance) =>
@@ -27,7 +29,9 @@ Map<String, dynamic> _$BudgetSheetConfigToJson(BudgetSheetConfig instance) =>
       'spreadsheetId': instance.spreadsheetId,
       'dataSheetId': instance.dataSheetId,
       'dataRange': instance.dataRange,
-      'columns': instance.columns
+      'columns': instance.columns,
+      'headerTitle': instance.headerTitle,
+      'headerDataRange': instance.headerDataRange
     };
 
 ColumnDescription _$ColumnDescriptionFromJson(Map<String, dynamic> json) {

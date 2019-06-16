@@ -24,7 +24,7 @@ class BudgetFlexibleSpaceBar extends StatelessWidget {
               style: subtitleStyle,
               child: subtitle
             ),
-            SizedBox(height: 8),
+            SizedBox(height: 4),
             DefaultTextStyle(
               style: titleStyle,
               child: title
