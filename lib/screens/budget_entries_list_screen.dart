@@ -98,7 +98,7 @@ class BudgetEntriesListState extends State<BudgetEntriesListScreen> {
             title: Text(headerValue),
           ))
           : SliverAppBar(
-          title: Text(budgetConfig.spreadsheetTitle + " - " + budgetConfig.dataSheetTitle),
+          title: Text((budgetConfig.spreadsheetTitle ?? "") + " - " + (budgetConfig.dataSheetTitle ?? "")),
         ),
         SliverPadding(
           padding: EdgeInsets.only(bottom: 36),

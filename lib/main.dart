@@ -14,7 +14,9 @@ const prefsApplicationConfig = "appliaction_config";
 GoogleSignIn googleSignIn = GoogleSignIn(scopes: [
   'email',
   DriveApi.DriveReadonlyScope,
-  SheetsApi.SpreadsheetsScope
+  SheetsApi.SpreadsheetsScope,
+  'https://www.googleapis.com/auth/cloud-platform',
+  'https://www.googleapis.com/auth/cloud-vision'
 ]);
 Map<String, String> httpHeaders;
 GoogleHttpClient httpClient;

@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:home_budget/data/application_config.dart';
 import 'package:home_budget/data/budget_sheet_config.dart';
+import 'package:http/http.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
+import 'ReceiptPreviewScreen.dart';
 import 'budget_add_entry_screen.dart';
 import 'budget_entries_list_screen.dart';
 import 'budgets_list_screen.dart';
+import '../main.dart';
 
 class BudgetShowScreen extends StatefulWidget {
 
@@ -60,7 +67,12 @@ class _MainState extends State<BudgetShowScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () => _onSelectedAddEntry(context),
+        onPressed: () async {
+          final image = await ImagePicker.pickImage(source: ImageSource.gallery);
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => ReceiptPreviewScreen(imageFile: image))
+          );
+        },
       ),
     );
 
