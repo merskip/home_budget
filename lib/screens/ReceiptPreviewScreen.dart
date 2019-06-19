@@ -83,7 +83,7 @@ class _ReceiptPreviewScreenState extends State<ReceiptPreviewScreen> {
   }
 
   Product _parseProduct(String line) {
-    final regex = RegExp(r"^(.*)\s((?:\d+[,.])?\d+)\s*.\s*(\d+[,.]\d+)\s+(\d+[,.]\d+)\s?([A-Z])$");
+    final regex = RegExp(r"^(.+)\s(\d+(?:[,.]\d{2})?)[\sxX*]+(\d+[,.]\d{2})\s*z?ł?[^a-zA-Z0-9]+(\d+[,.]\d{2}).*?([A-Z])?$");
     final match = regex.firstMatch(line);
     if (match == null) return null;
     return Product(
@@ -91,7 +91,7 @@ class _ReceiptPreviewScreenState extends State<ReceiptPreviewScreen> {
       amount: double.parse(match.group(2).replaceAll(",", ".")),
       unitPrice: double.parse(match.group(3).replaceAll(",", ".")),
       totalAmount: double.parse(match.group(4).replaceAll(",", ".")),
-      taxLevel: match.group(5).trim()
+      taxLevel: match.group(5)
     );
   }
 
