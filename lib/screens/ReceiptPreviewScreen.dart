@@ -56,7 +56,7 @@ class _ReceiptPreviewScreenState extends State<ReceiptPreviewScreen> {
 
     products = _getProducts(productsText.toList());
     setState(() {
-      List<ListItem> listItems = [ReceiptImageListItem(widget.imageFile)];
+      List<ListItem> listItems = [];
       listItems.addAll(products.map((product) => ProductListItem(product)));
       this.listItems = listItems;
     });
@@ -127,7 +127,6 @@ class _ReceiptPreviewScreenState extends State<ReceiptPreviewScreen> {
   @override
   Widget build(BuildContext context) =>
     Scaffold(
-      appBar: AppBar(title: Text("Receipt")),
       body: listItems != null ? _productsList() : Center(child: CircularProgressIndicator()),
       bottomNavigationBar: Card(
         child: ListTile(
@@ -140,30 +139,45 @@ class _ReceiptPreviewScreenState extends State<ReceiptPreviewScreen> {
     );
 
   _productsList() =>
-    ListView.builder(
-      itemCount: listItems.length,
-      itemBuilder: (context, index) {
-        final listItem = listItems[index];
-
-        if (listItem is ReceiptImageListItem) {
-          return Image.file(listItem.imageFile);
-        }
-        else if (listItem is ProductListItem) {
-          final product = listItem.product;
-          return ListTile(
-            leading: Checkbox(
-              value: selectedProducts.contains(product),
-              onChanged: (_) => _toggleSelectionProduct(product)
+      CustomScrollView(
+          slivers: <Widget>[
+            SliverAppBar(
+              pinned: true,
+              expandedHeight: 200.0,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Image.file(widget.imageFile, fit: BoxFit.cover),
+              ),
             ),
-            title: Text(product.text),
-            subtitle: Text(product.amount != 1.0 ? "${product.amount} × ${product.unitPrice} zł (${product.taxLevel})" : "(${product.taxLevel})"),
-            trailing: Text("${product.totalAmount} zł", style: Theme.of(context).textTheme.title),
-            selected: selectedProducts.contains(product),
-            onTap: () => _toggleSelectionProduct(product),
-          );
-        }
-      }
-    );
+            SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final listItem = listItems[index];
+
+                  if (listItem is ReceiptImageListItem) {
+                    return Image.file(listItem.imageFile);
+                  }
+                  else if (listItem is ProductListItem) {
+                    final product = listItem.product;
+                    return ListTile(
+                      leading: Checkbox(
+                          value: selectedProducts.contains(product),
+                          onChanged: (_) => _toggleSelectionProduct(product)
+                      ),
+                      title: Text(product.text),
+                      subtitle: Text(
+                          product.amount != 1.0
+                              ? "${product.amount} × ${product
+                              .unitPrice} zł (${product.taxLevel})"
+                              : "(${product.taxLevel})"),
+                      trailing: Text("${product.totalAmount} zł",
+                          style: Theme.of(context).textTheme.title),
+                      selected: selectedProducts.contains(product),
+                      onTap: () => _toggleSelectionProduct(product),
+                    );
+                  }
+                }, childCount: listItems.length)
+            )
+          ]
+      );
 
   _toggleSelectionProduct(Product product) {
     setState(() {
