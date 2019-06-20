@@ -95,7 +95,6 @@ class _ReceiptRecognizeScreenState extends State<ReceiptRecognizeScreen> {
   @override
   Widget build(BuildContext context) =>
     Scaffold(
-
       body: listItems != null ? _productsList() : Center(child: CircularProgressIndicator()),
       bottomNavigationBar: receipt != null ? _receiptBottomBar() : null
     );
@@ -121,9 +120,11 @@ class _ReceiptRecognizeScreenState extends State<ReceiptRecognizeScreen> {
           pinned: true,
           forceElevated: true,
           elevation: 4,
-          expandedHeight: 200.0,
+          expandedHeight: 128,
           flexibleSpace: FlexibleSpaceBar(
-            background: Image.file(widget.imageFile, fit: BoxFit.cover),
+            background: Image.file(widget.imageFile, fit: BoxFit.cover,
+            color: Colors.black38,
+            colorBlendMode: BlendMode.srcATop),
           ),
           actions: <Widget>[
             IconButton(
