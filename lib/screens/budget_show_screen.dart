@@ -30,15 +30,6 @@ class _MainState extends State<BudgetShowScreen> {
     });
   }
 
-  _onSelectedAddEntry(BuildContext context) async {
-    final preferences = await ApplicationConfig.readFromPreferences();
-    final addEntryRoute = MaterialPageRoute(builder: (context) => BudgetAddEntryScreen(preferences.defaultBudgetSheetConfig));
-    final appendedEntry = await Navigator.push(context, addEntryRoute) ?? false;
-    if (appendedEntry) {
-      _budgetEntriesKey.currentState.refreshBudget();
-    }
-  }
-
   @override
   Widget build(BuildContext context) =>
     Scaffold(
@@ -67,12 +58,7 @@ class _MainState extends State<BudgetShowScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () async {
-          final image = await ImagePicker.pickImage(source: ImageSource.gallery);
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => ReceiptPreviewScreen(imageFile: image))
-          );
-        },
+        onPressed: () => _onSelectFAB(context)
       ),
     );
 
@@ -90,6 +76,63 @@ class _MainState extends State<BudgetShowScreen> {
       return BudgetListScreen();
     else
       return null;
+  }
+
+  _onSelectFAB(BuildContext context) async {
+    showModalBottomSheet(context: context, builder: (context) =>
+      Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          ListTile(
+            leading: Icon(Icons.text_fields),
+            title: Text("Enter manually"),
+            onTap: () => _onSelectedAddEntry(context)
+          ),
+          Text("Recognize receipt"),
+          ListTile(
+            leading: Icon(Icons.image),
+            title: Text("Choose from gallery"),
+            onTap: () => _onSelectedRecognizeReceiptFromGallery(),
+          ),
+          ListTile(
+            leading: Icon(Icons.camera_alt),
+            title: Text("Take photo"),
+            onTap: () => _onSelectedRecognizeReceiptWithTakePhoto(),
+          ),
+        ],
+      )
+    );
+  }
+
+  _onSelectedAddEntry(BuildContext context) async {
+    Navigator.of(context).pop();
+
+    final preferences = await ApplicationConfig.readFromPreferences();
+    final addEntryRoute = MaterialPageRoute(builder: (context) => BudgetAddEntryScreen(preferences.defaultBudgetSheetConfig));
+    final appendedEntry = await Navigator.push(context, addEntryRoute) ?? false;
+    if (appendedEntry) {
+      _budgetEntriesKey.currentState.refreshBudget();
+    }
+  }
+
+  _onSelectedRecognizeReceiptFromGallery() async {
+    final image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      Navigator.of(context).pop();
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => ReceiptPreviewScreen(imageFile: image))
+      );
+    }
+  }
+
+  _onSelectedRecognizeReceiptWithTakePhoto() async {
+    final image = await ImagePicker.pickImage(source: ImageSource.camera);
+    if (image != null) {
+      Navigator.of(context).pop();
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => ReceiptPreviewScreen(imageFile: image))
+      );
+    }
   }
 }
 
