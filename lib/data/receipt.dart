@@ -29,6 +29,10 @@ class ReceiptProduct {
   final double totalAmount;
   final String taxLevel;
 
+  String get capitalizedText {
+    return text[0].toUpperCase() + text.substring(1).toLowerCase();
+}
+
   ReceiptProduct({this.text, this.amount, this.unitPrice, this.totalAmount, this.taxLevel});
 
   bool isMalformed() {

@@ -7,7 +7,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'ReceiptPreviewScreen.dart';
+import 'receipt_recognize_screen.dart';
 import 'budget_add_entry_screen.dart';
 import 'budget_entries_list_screen.dart';
 import 'budgets_list_screen.dart';
@@ -120,7 +120,7 @@ class _MainState extends State<BudgetShowScreen> {
     if (image != null) {
       Navigator.of(context).pop();
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => ReceiptPreviewScreen(imageFile: image))
+        MaterialPageRoute(builder: (context) => ReceiptRecognizeScreen(imageFile: image))
       );
     }
   }
@@ -130,7 +130,7 @@ class _MainState extends State<BudgetShowScreen> {
     if (image != null) {
       Navigator.of(context).pop();
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => ReceiptPreviewScreen(imageFile: image))
+        MaterialPageRoute(builder: (context) => ReceiptRecognizeScreen(imageFile: image))
       );
     }
   }
