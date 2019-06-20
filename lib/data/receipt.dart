@@ -1,5 +1,7 @@
 
 
+import '../util/double.dart';
+
 class Receipt {
 
   final List<ReceiptProduct> products;
@@ -13,7 +15,7 @@ class Receipt {
       return true;
 
     final double productsTotalAmount = products.map((p) => p.totalAmount).fold(0, (p, c) => p + c);
-    if (productsTotalAmount != totalAmount)
+    if (!equalsDouble(productsTotalAmount, totalAmount, epsilon: 0.01))
       return true;
     return false;
   }
@@ -34,8 +36,16 @@ class ReceiptProduct {
       return true;
     if (taxLevel == null || taxLevel.isEmpty)
       return true;
-    if (amount * unitPrice != totalAmount)
+
+    final calculatedTotalAmount = amount * unitPrice;
+    if (!equalsDouble(calculatedTotalAmount, totalAmount, epsilon: 0.01))
       return true;
     return false;
   }
+
+  @override
+  String toString() {
+    return '\"$text\" $totalAmount zł' + (isMalformed() ? " (⚠)" : '');
+  }
+
 }
