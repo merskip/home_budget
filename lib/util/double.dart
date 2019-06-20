@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
 
 bool equalsDouble(double a, double b, {double epsilon}) {
+  if (a == null || b == null) return false;
   return (a - b).abs() < epsilon;
 }
 

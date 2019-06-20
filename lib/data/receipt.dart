@@ -29,16 +29,23 @@ class ReceiptProduct {
   final double totalAmount;
   final String taxLevel;
 
-  String get capitalizedText {
-    return text[0].toUpperCase() + text.substring(1).toLowerCase();
+  String get prettyText {
+    var text = this.text;
+    if (text.endsWith("$taxLevel")) text = text.substring(0, text.length - 1);
+    if (text.endsWith("($taxLevel)")) text = text.substring(0, text.length - 3);
+    text = text.trim();
+
+    final isUppercase = text == text.toUpperCase();
+    if (isUppercase)
+      return text[0].toUpperCase() + text.substring(1).toLowerCase();
+    else
+      return text;
 }
 
   ReceiptProduct({this.text, this.amount, this.unitPrice, this.totalAmount, this.taxLevel});
 
   bool isMalformed() {
     if (text == null || text.isEmpty)
-      return true;
-    if (taxLevel == null || taxLevel.isEmpty)
       return true;
 
     final calculatedTotalAmount = amount * unitPrice;

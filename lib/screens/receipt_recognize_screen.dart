@@ -167,7 +167,7 @@ class _ReceiptRecognizeScreenState extends State<ReceiptRecognizeScreen> {
       leading: Icon(Icons.warning, color: Theme
         .of(context)
         .errorColor),
-      title: Text("The receipt looks as malformed")
+      title: Text("The receipt seems malformed")
     );
 
   _productListItem(ReceiptProduct product) =>
@@ -176,17 +176,24 @@ class _ReceiptRecognizeScreenState extends State<ReceiptRecognizeScreen> {
         value: selectedProducts.contains(product),
         onChanged: !product.isMalformed() ? (_) => _toggleSelectionProduct(product) : null
       ),
-      title: Text(product.capitalizedText),
+      title: Text(product.prettyText),
       subtitle: product.amount != 1.0 ? Text("${product.amount} × ${moneyFormat(amount: product.unitPrice)}") : null,
-      trailing: Text(moneyFormat(amount: product.totalAmount),
-        style: Theme
-          .of(context)
-          .textTheme
-          .body2),
+      trailing: Text(moneyFormat(amount: product.totalAmount) + " " + _getSymbolForTaxLevel(product.taxLevel),
+        style: Theme.of(context).textTheme.body2),
       selected: selectedProducts.contains(product),
       enabled: !product.isMalformed(),
       onTap: () => _toggleSelectionProduct(product),
     );
+
+  String _getSymbolForTaxLevel(String taxLevel) {
+    if (taxLevel == null) return "(?)";
+    switch (taxLevel) {
+      case "A": return "💎";
+      case "B": return "🍕";
+      case "C": return "🍞";
+      default: return "($taxLevel)";
+    }
+  }
 
   _toggleSelectionProduct(ReceiptProduct product) {
     setState(() {
