@@ -50,7 +50,7 @@ class ReceiptReader {
   }
 
   ReceiptProduct _parseProduct(String line) {
-    final regex = RegExp(r"^(.+)\s(\d+(?:[,.]\d{2})?)(?:szt.?)?[\sxX*]+(\d+[,.]\d{2})\s*z?ł?[^a-zA-Z0-9]+(\d+[,.]\d{2}).*?([A-Z])?$");
+    final regex = RegExp(r"^(.+)\s(\d+(?:[,.]\d*)?)(?:szt.?)?[\sxX*#]+(\d+[,.]\d*)\s*z?ł?[^a-zA-Z0-9]+(\d+[,.]\d{2}).*?([A-Z])?$");
     final match = regex.firstMatch(line);
     if (match == null) return null;
 
