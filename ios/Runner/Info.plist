@@ -54,5 +54,7 @@
 	</array>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Lorem ipsum</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Lorem ipsum</string>
 </dict>
 </plist>
