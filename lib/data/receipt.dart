@@ -31,7 +31,9 @@ class ReceiptProduct {
 
   String get prettyText {
     var text = this.text;
-    if (text.endsWith("$taxLevel")) text = text.substring(0, text.length - 1);
+    if (text.startsWith(taxLevel)) text = text.substring(1);
+    if (text.startsWith("($taxLevel)")) text = text.substring(3);
+    if (text.endsWith(taxLevel)) text = text.substring(0, text.length - 1);
     if (text.endsWith("($taxLevel)")) text = text.substring(0, text.length - 3);
     text = text.trim();
 
@@ -40,7 +42,7 @@ class ReceiptProduct {
       return text[0].toUpperCase() + text.substring(1).toLowerCase();
     else
       return text;
-}
+  }
 
   ReceiptProduct({this.text, this.amount, this.unitPrice, this.totalAmount, this.taxLevel});
 
