@@ -50,7 +50,7 @@ class ReceiptReader {
   }
 
   ReceiptProduct _parseProduct(String line) {
-    final regex = RegExp(r"^(.+)\s(\d+(?:[,.]\d*)?)(?:szt.?)?[\sxX*#]+(\d+[,.]\d*)\s*z?ł?[^a-zA-Z0-9]+(\d+[,.]\d{2}).*?([A-Z])?$");
+    final regex = RegExp(r"^(.+)\s(\d+(?:[,.]\d*)?)(?:szt.?)?[\sxX*#]+(\d+[,.]\d*)\s*z?ł?[^a-zA-Z0-9]+(\d+[,.]\d{2}).*?([A-Z08(])?$");
     final match = regex.firstMatch(line);
     if (match == null) return null;
 
@@ -58,7 +58,7 @@ class ReceiptReader {
     final amount = parseDouble(match.group(2));
     final unitPrice = parseDouble(match.group(3));
     final totalAmount = parseDouble(match.group(4));
-    final taxLevel = match.group(5);
+    final taxLevel = _getFixedTaxLevel(match.group(5));
 
     return ReceiptProduct(
       text: text,
@@ -67,5 +67,14 @@ class ReceiptReader {
       totalAmount: totalAmount,
       taxLevel: taxLevel
     );
+  }
+
+  String _getFixedTaxLevel(String taxLevel) {
+    switch (taxLevel) {
+      case "0": return "D";
+      case "8": return "B";
+      case "(": return "C";
+      default: return taxLevel;
+    }
   }
 }
