@@ -12,13 +12,17 @@ class BudgetAddEntryScreen extends StatefulWidget {
 
   final BudgetSheetConfig budgetSheetConfig;
 
-  const BudgetAddEntryScreen(this.budgetSheetConfig, {Key key}) : super(key: key);
+  final String initialTitle;
+  final double initialAmount;
+  final DateTime initialDate;
+
+  const BudgetAddEntryScreen(this.budgetSheetConfig, {Key key, this.initialTitle, this.initialAmount, this.initialDate}) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => AddEntryState();
+  State<StatefulWidget> createState() => _BudgetAddEntryState();
 }
 
-class AddEntryState extends State<BudgetAddEntryScreen> {
+class _BudgetAddEntryState extends State<BudgetAddEntryScreen> {
 
   List<ColumnDescription> columns;
   Map<ColumnDescription, String> userEnteredValues = {};
@@ -33,6 +37,31 @@ class AddEntryState extends State<BudgetAddEntryScreen> {
   void initState() {
     super.initState();
     columns = widget.budgetSheetConfig.columns;
+    _setInitialData();
+  }
+
+  _setInitialData() {
+    if (widget.initialTitle != null) {
+      final titleColumn = columns.firstWhere((column) => column.displayType == DisplayType.title);
+      if (titleColumn != null) {
+        userEnteredValues[titleColumn] = widget.initialTitle;
+      }
+    }
+
+    if (widget.initialAmount != null) {
+      final amountColumn = columns.firstWhere((column) => column.displayType == DisplayType.amount);
+      if (amountColumn != null) {
+        userEnteredValues[amountColumn] = widget.initialAmount.toStringAsFixed(2);
+      }
+    }
+
+    if (widget.initialDate != null) {
+      final dateColumn = columns.firstWhere((column) => column.displayType == DisplayType.date);
+      if (dateColumn != null) {
+        final dateFormat = DateFormat(dateColumn.dateFormat);
+        userEnteredValues[dateColumn] = dateFormat.format(widget.initialDate);
+      }
+    }
   }
 
   _onSubmit() async {

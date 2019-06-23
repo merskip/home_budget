@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:home_budget/data/application_config.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:home_budget/util/double.dart';
@@ -9,6 +10,8 @@ import 'package:http/http.dart';
 
 import '../main.dart';
 import '../data/receipt.dart';
+import '../data/budget_sheet_config.dart';
+import 'budget_add_entry_screen.dart';
 
 class ReceiptRecognizeScreen extends StatefulWidget {
 
@@ -25,7 +28,23 @@ class _ReceiptRecognizeScreenState extends State<ReceiptRecognizeScreen> {
   Receipt receipt;
   List<ListItem> listItems;
 
-  List<ReceiptProduct> selectedProducts = [];
+  List<ReceiptProduct> get selectedProducts {
+    return listItems.map((listItem) {
+      if (listItem is ProductListItem && listItem.isSelected)
+        return listItem.product;
+      else
+        return null;
+    }).where((p) => p != null).toList() ?? [];
+  }
+
+  List<ReceiptProduct> get selectableProducts {
+    return listItems.map((listItem) {
+      if (listItem is ProductListItem && listItem.isSelectable)
+        return listItem.product;
+      else
+        return null;
+    }).where((p) => p != null).toList() ?? [];
+  }
 
   double get totalSelectedAmount {
     return selectedProducts.map((p) => p.totalAmount).fold(0, (p, c) => p + c);
@@ -84,13 +103,12 @@ class _ReceiptRecognizeScreenState extends State<ReceiptRecognizeScreen> {
 
   _onSelectToggleSelection() {
     setState(() {
-      final isAllSelected = selectedProducts.length == receipt.products.length;
-      if (isAllSelected) {
-        selectedProducts = [];
-      }
-      else {
-        selectedProducts = receipt.products.where((p) => !p.isMalformed()).toList();
-      }
+      final isAllSelected = selectedProducts.length == selectableProducts.length;
+      listItems.forEach((listItem)  {
+        if (listItem is ProductListItem && listItem.isSelectable) {
+          listItem.isSelected = !isAllSelected;
+        }
+      });
     });
   }
 
@@ -105,11 +123,39 @@ class _ReceiptRecognizeScreenState extends State<ReceiptRecognizeScreen> {
     Card(
       child: ListTile(
         title: Text("Selected ${moneyFormat(amount: totalSelectedAmount)}"),
-        subtitle: Text("${selectedProducts.length} of ${receipt.products?.length ?? 0}"),
+        subtitle: Text("${selectedProducts.length} of ${selectableProducts?.length ?? 0}"),
         trailing: RaisedButton(
           child: Text("Add"),
-          onPressed: selectedProducts.isNotEmpty ? () {
+          onPressed: selectedProducts.isNotEmpty ? () async {
+            final title = selectedProducts.map((product) => product.text).join(", ");
 
+            final preferences = await ApplicationConfig.readFromPreferences();
+            final appendedEntry = await Navigator.push(context, MaterialPageRoute(builder: (context) =>
+              BudgetAddEntryScreen(
+                preferences.defaultBudgetSheetConfig,
+                initialTitle: title,
+                initialAmount: totalSelectedAmount,
+                initialDate: receipt.dateOfPurchase)
+            )) ?? false;
+            if (appendedEntry) {
+              setState(() {
+                listItems = listItems.map((listItem) {
+                  if (listItem is ProductListItem && listItem.isSelected) {
+                    listItem.isCompleted = true;
+                    listItem.isSelected = false;
+                  }
+                  return listItem;
+                }).toList();
+
+                final allProductsAreCompleted = listItems.where((listItem) {
+                  return listItem is ProductListItem && listItem.isCompleted;
+                }).length == receipt.products.length;
+
+                if (allProductsAreCompleted) {
+                  Navigator.of(context).pop(true);
+                }
+              });
+            }
           } : null,
         ),
       )
@@ -125,8 +171,8 @@ class _ReceiptRecognizeScreenState extends State<ReceiptRecognizeScreen> {
           expandedHeight: 128,
           flexibleSpace: FlexibleSpaceBar(
             background: Image.file(widget.imageFile, fit: BoxFit.cover,
-            color: Colors.black38,
-            colorBlendMode: BlendMode.srcATop),
+              color: Colors.black38,
+              colorBlendMode: BlendMode.srcATop),
           ),
           actions: <Widget>[
             IconButton(
@@ -146,7 +192,7 @@ class _ReceiptRecognizeScreenState extends State<ReceiptRecognizeScreen> {
               return _malformedWarningListItem();
             }
             else if (listItem is ProductListItem) {
-              return _productListItem(listItem.product);
+              return _productListItem(listItem);
             }
           }, childCount: listItems.length)
         )
@@ -184,27 +230,30 @@ class _ReceiptRecognizeScreenState extends State<ReceiptRecognizeScreen> {
       title: Text("The receipt seems malformed")
     );
 
-  _productListItem(ReceiptProduct product) =>
-    ListTile(
-      leading: Checkbox(
-        value: selectedProducts.contains(product),
-        onChanged: !product.isMalformed() ? (_) => _toggleSelectionProduct(product) : null
+  _productListItem(ProductListItem listItem) {
+    final product = listItem.product;
+    return ListTile(
+      leading: listItem.isCompleted ? Container(
+        width: 48,
+        alignment: Alignment.center,
+        child: Icon(Icons.check, color: Colors.green)
+      ) : Checkbox(
+        value: listItem.isSelected,
+        onChanged: listItem.isSelectable ? (_) => _toggleSelectionProduct(listItem) : null
       ),
       title: Text(product.prettyText + " (${product.taxLevel ?? "?"})"),
       subtitle: product.amount != 1.0 ? Text("${product.amount} × ${moneyFormat(amount: product.unitPrice)}") : null,
       trailing: Text(moneyFormat(amount: product.totalAmount),
         style: Theme.of(context).textTheme.body2),
-      selected: selectedProducts.contains(product),
-      enabled: !product.isMalformed(),
-      onTap: () => _toggleSelectionProduct(product),
+      selected: listItem.isSelected,
+      enabled: listItem.isSelectable,
+      onTap: () => _toggleSelectionProduct(listItem),
     );
+  }
 
-  _toggleSelectionProduct(ReceiptProduct product) {
+  _toggleSelectionProduct(ProductListItem listItem) {
     setState(() {
-      if (selectedProducts.contains(product))
-        selectedProducts.remove(product);
-      else
-        selectedProducts.add(product);
+      listItem.isSelected = !listItem.isSelected;
     });
   }
 }
@@ -224,6 +273,12 @@ class MalformedWarningListItem extends ListItem {
 class ProductListItem extends ListItem {
 
   final ReceiptProduct product;
+  bool isSelected = false;
+  bool isCompleted = false;
+
+  bool get isSelectable {
+    return !isCompleted && !product.isMalformed();
+  }
 
   ProductListItem(this.product);
 }
