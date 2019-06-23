@@ -38,6 +38,7 @@ class _ReceiptRecognizeScreenState extends State<ReceiptRecognizeScreen> {
 
   _recognizeImage() async {
     final fullText = await _recognizeTextFromImage(widget.imageFile);
+    print("Recognized text: $fullText");
     final textLines = fullText.split("\n");
     this.receipt = ReceiptReader().read(textLines);
 
@@ -176,24 +177,14 @@ class _ReceiptRecognizeScreenState extends State<ReceiptRecognizeScreen> {
         value: selectedProducts.contains(product),
         onChanged: !product.isMalformed() ? (_) => _toggleSelectionProduct(product) : null
       ),
-      title: Text(product.prettyText),
+      title: Text(product.prettyText + " (${product.taxLevel ?? "?"})"),
       subtitle: product.amount != 1.0 ? Text("${product.amount} × ${moneyFormat(amount: product.unitPrice)}") : null,
-      trailing: Text(moneyFormat(amount: product.totalAmount) + " " + _getSymbolForTaxLevel(product.taxLevel),
+      trailing: Text(moneyFormat(amount: product.totalAmount),
         style: Theme.of(context).textTheme.body2),
       selected: selectedProducts.contains(product),
       enabled: !product.isMalformed(),
       onTap: () => _toggleSelectionProduct(product),
     );
-
-  String _getSymbolForTaxLevel(String taxLevel) {
-    if (taxLevel == null) return "(?)";
-    switch (taxLevel) {
-      case "A": return "💎";
-      case "B": return "🍕";
-      case "C": return "🍞";
-      default: return "($taxLevel)";
-    }
-  }
 
   _toggleSelectionProduct(ReceiptProduct product) {
     setState(() {
