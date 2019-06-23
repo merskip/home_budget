@@ -4,12 +4,16 @@ import '../util/double.dart';
 
 class Receipt {
 
+  final DateTime dateOfPurchase;
   final List<ReceiptProduct> products;
   final double totalAmount;
 
-  Receipt(this.products, this.totalAmount);
+  Receipt(this.dateOfPurchase, this.products, this.totalAmount);
 
   bool isMalformed() {
+    if (dateOfPurchase == null)
+      return true;
+
     final malformedProducts = products.where((p) => p.isMalformed());
     if (malformedProducts.isNotEmpty)
       return true;
@@ -31,9 +35,9 @@ class ReceiptProduct {
 
   String get prettyText {
     var text = this.text;
-    if (text.startsWith(taxLevel)) text = text.substring(1);
+    if (text.startsWith("$taxLevel ")) text = text.substring(2);
     if (text.startsWith("($taxLevel)")) text = text.substring(3);
-    if (text.endsWith(taxLevel)) text = text.substring(0, text.length - 1);
+    if (text.endsWith(" $taxLevel")) text = text.substring(0, text.length - 2);
     if (text.endsWith("($taxLevel)")) text = text.substring(0, text.length - 3);
     text = text.trim();
 

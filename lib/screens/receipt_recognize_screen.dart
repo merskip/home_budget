@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:home_budget/util/double.dart';
 import 'package:home_budget/util/receipt_reader.dart';
@@ -154,20 +155,32 @@ class _ReceiptRecognizeScreenState extends State<ReceiptRecognizeScreen> {
 
   _receiptSummary(Receipt receipt) =>
     ListTile(
+      leading: Container(
+        width: 48,
+        alignment: Alignment.center,
+        child: Icon(Icons.receipt)
+      ),
       title: Text("Total amount"),
+      subtitle: Text(_formatPurchaseDate(receipt.dateOfPurchase)),
       trailing: Text(moneyFormat(amount: receipt.totalAmount, simple: false),
-        style: Theme
-          .of(context)
-          .textTheme
-          .title
+        style: Theme.of(context).textTheme.title
       ),
     );
 
+  _formatPurchaseDate(DateTime date) {
+    if (date == null) return "Unknown date of purchse";
+    return DateFormat("dd.MM.yyyy").format(date);
+  }
+
   _malformedWarningListItem() =>
     ListTile(
-      leading: Icon(Icons.warning, color: Theme
-        .of(context)
-        .errorColor),
+      leading: Container(
+        width: 48,
+        alignment: Alignment.center,
+        child: Icon(Icons.warning,
+          color: Theme.of(context).errorColor
+        )
+      ),
       title: Text("The receipt seems malformed")
     );
 

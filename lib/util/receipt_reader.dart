@@ -4,10 +4,11 @@ import '../util/double.dart';
 class ReceiptReader {
 
   Receipt read(List<String> textLines) {
+    final dateOfPurchase = _findDateOfPurchase(textLines);
     final totalAmount = _findTotalAmount(textLines);
     final products = _readProducts(textLines, targetTotalAmount: totalAmount);
 
-    return Receipt(products, totalAmount);
+    return Receipt(dateOfPurchase, products, totalAmount);
   }
 
   List<ReceiptProduct> _readProducts(List<String> textLines, {double targetTotalAmount}) {
@@ -47,6 +48,17 @@ class ReceiptReader {
     final text = textLines.join(" ");
     final match = regex.firstMatch(text);
     return parseDouble(match?.group(1));
+  }
+
+  DateTime _findDateOfPurchase(List<String> textLines) {
+    var match = RegExp(r"\s(?:[0-9]{4}|[0-9]{2})\-[0-9]{2}\-(?:[0-9]{4}|[0-9]{2})\s").firstMatch(textLines.join(" "));
+    if (match != null) {
+      final date = match.group(0).trim();
+      return DateTime.tryParse(date);
+    }
+    else {
+      return null;
+    }
   }
 
   ReceiptProduct _parseProduct(String line) {
